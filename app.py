@@ -2316,6 +2316,49 @@ INSTRUCCIONES IMPORTANTES:
     except Exception as e:
         print(f"Error en chat IA: {e}")
         return jsonify({"error": "Error procesando la consulta"}), 500
+    
+
+# VER IMAGENES     
+@app.route('/debug/ver-imagenes')
+def debug_ver_imagenes():
+    import os
+    result = {
+        "upload_folder": UPLOAD_FOLDER,
+        "existe": os.path.exists(UPLOAD_FOLDER),
+        "publicidad": [],
+        "restaurantes": []
+    }
+    
+    # Ver carpeta publicidad
+    pub_path = os.path.join(UPLOAD_FOLDER, "publicidad")
+    if os.path.exists(pub_path):
+        result["publicidad"] = os.listdir(pub_path)
+    
+    # Ver carpeta restaurantes
+    rest_path = os.path.join(UPLOAD_FOLDER, "restaurantes")
+    if os.path.exists(rest_path):
+        result["restaurantes"] = os.listdir(rest_path)
+    
+    return result
+
+@app.route('/debug/imagenes')
+def debug_imagenes():
+    import os
+    resultado = {
+        "upload_folder": UPLOAD_FOLDER,
+        "existe": os.path.exists(UPLOAD_FOLDER),
+        "contenido": {}
+    }
+    
+    # Explorar carpetas
+    for carpeta in ['publicidad', 'restaurantes']:
+        ruta = os.path.join(UPLOAD_FOLDER, carpeta)
+        if os.path.exists(ruta):
+            resultado["contenido"][carpeta] = os.listdir(ruta)
+        else:
+            resultado["contenido"][carpeta] = []
+    
+    return resultado
 
 # =========================
 # EJECUCIÓN
