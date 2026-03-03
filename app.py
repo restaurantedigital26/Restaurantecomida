@@ -645,20 +645,31 @@ def chat():
 # =========================
 @app.route('/uploads/<path:filename>')
 def uploaded_file(filename):
-    """Sirve archivos desde la carpeta de uploads"""
+    """Sirve archivos desde UPLOAD_FOLDER con diagnóstico detallado"""
+    import os
+    
+    # Construir ruta completa
+    ruta_completa = os.path.join(UPLOAD_FOLDER, filename)
+    
+    print(f"🔍 Solicitando: {filename}")
+    print(f"📁 Buscando en: {ruta_completa}")
+    print(f"📁 ¿Existe? {os.path.exists(ruta_completa)}")
+    
+    if not os.path.exists(ruta_completa):
+        # Listar archivos en la carpeta para diagnóstico
+        carpeta = os.path.dirname(ruta_completa)
+        if os.path.exists(carpeta):
+            archivos = os.listdir(carpeta)
+            print(f"📁 Archivos en {carpeta}: {archivos[:5]}")  # Primeros 5 archivos
+        else:
+            print(f"❌ La carpeta {carpeta} no existe")
+        return "Imagen no encontrada", 404
+    
     try:
-        # Intenta servir desde UPLOAD_FOLDER
         return send_from_directory(UPLOAD_FOLDER, filename)
-    except FileNotFoundError:
-        # Si no encuentra, intenta desde static/uploads (para desarrollo local)
-        try:
-            return send_from_directory('static/uploads', filename)
-        except FileNotFoundError:
-            # Si no hay imagen, sirve un placeholder
-            return send_from_directory('static/img', 'no-image.png')
     except Exception as e:
-        print(f"❌ Error sirviendo imagen {filename}: {e}")
-        abort(404)
+        print(f"❌ Error sirviendo: {e}")
+        return "Error al servir imagen", 500
 
 # =========================
 # REGISTRO
@@ -2359,6 +2370,29 @@ def debug_imagenes():
             resultado["contenido"][carpeta] = []
     
     return resultado
+
+@app.route('/debug/lista-imagenes')
+def debug_lista_imagenes():
+    import os
+    resultados = {
+        "upload_folder": UPLOAD_FOLDER,
+        "carpeta_existe": os.path.exists(UPLOAD_FOLDER),
+        "contenido": {}
+    }
+    
+    # Revisar carpetas
+    for subcarpeta in ['restaurantes', 'publicidad']:
+        ruta = os.path.join(UPLOAD_FOLDER, subcarpeta)
+        if os.path.exists(ruta):
+            try:
+                archivos = os.listdir(ruta)
+                resultados["contenido"][subcarpeta] = archivos
+            except Exception as e:
+                resultados["contenido"][subcarpeta] = f"Error al leer: {e}"
+        else:
+            resultados["contenido"][subcarpeta] = "Carpeta no existe"
+    
+    return resultados
 
 # =========================
 # EJECUCIÓN
