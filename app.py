@@ -2329,35 +2329,15 @@ INSTRUCCIONES IMPORTANTES:
         return jsonify({"error": "Error procesando la consulta"}), 500
     
 
-# VER IMAGENES     
-@app.route('/debug/ver-imagenes')
-def debug_ver_imagenes():
-    import os
-    result = {
-        "upload_folder": UPLOAD_FOLDER,
-        "existe": os.path.exists(UPLOAD_FOLDER),
-        "publicidad": [],
-        "restaurantes": []
-    }
-    
-    # Ver carpeta publicidad
-    pub_path = os.path.join(UPLOAD_FOLDER, "publicidad")
-    if os.path.exists(pub_path):
-        result["publicidad"] = os.listdir(pub_path)
-    
-    # Ver carpeta restaurantes
-    rest_path = os.path.join(UPLOAD_FOLDER, "restaurantes")
-    if os.path.exists(rest_path):
-        result["restaurantes"] = os.listdir(rest_path)
-    
-    return result
+#VER IMAGENES
 
 @app.route('/debug/imagenes')
 def debug_imagenes():
+    """Muestra todas las imágenes guardadas en el servidor"""
     import os
     resultado = {
         "upload_folder": UPLOAD_FOLDER,
-        "existe": os.path.exists(UPLOAD_FOLDER),
+        "carpeta_existe": os.path.exists(UPLOAD_FOLDER),
         "contenido": {}
     }
     
@@ -2365,34 +2345,16 @@ def debug_imagenes():
     for carpeta in ['publicidad', 'restaurantes']:
         ruta = os.path.join(UPLOAD_FOLDER, carpeta)
         if os.path.exists(ruta):
-            resultado["contenido"][carpeta] = os.listdir(ruta)
-        else:
-            resultado["contenido"][carpeta] = []
-    
-    return resultado
-
-@app.route('/debug/lista-imagenes')
-def debug_lista_imagenes():
-    import os
-    resultados = {
-        "upload_folder": UPLOAD_FOLDER,
-        "carpeta_existe": os.path.exists(UPLOAD_FOLDER),
-        "contenido": {}
-    }
-    
-    # Revisar carpetas
-    for subcarpeta in ['restaurantes', 'publicidad']:
-        ruta = os.path.join(UPLOAD_FOLDER, subcarpeta)
-        if os.path.exists(ruta):
             try:
                 archivos = os.listdir(ruta)
-                resultados["contenido"][subcarpeta] = archivos
+                resultado["contenido"][carpeta] = archivos
+                print(f"📁 {carpeta}: {len(archivos)} archivos")
             except Exception as e:
-                resultados["contenido"][subcarpeta] = f"Error al leer: {e}"
+                resultado["contenido"][carpeta] = f"Error: {e}"
         else:
-            resultados["contenido"][subcarpeta] = "Carpeta no existe"
+            resultado["contenido"][carpeta] = "Carpeta no existe"
     
-    return resultados
+    return resultado
 
 # =========================
 # EJECUCIÓN
