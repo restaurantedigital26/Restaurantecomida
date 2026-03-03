@@ -796,7 +796,7 @@
                     {% for platillo in restaurante.menu %}
                         <div class="platillo-cliente-card" onclick="window.location.href='{{ url_for('detalle_platillo_cliente', restaurante_id=restaurante._id, platillo_index=loop.index0) }}'">
                             {% if platillo.foto %}
-                                <img src="{{ url_for('static', filename='uploads/' + platillo.foto) }}" alt="{{ platillo.nombre }}">
+                            <img src="{{ url_for('uploaded_file', filename='restaurantes/' + platillo.foto) }}" alt="{{ platillo.nombre }}">
                             {% else %}
                                 <img src="{{ url_for('static', filename='img/no-image.png') }}" alt="Sin imagen">
                             {% endif %}
