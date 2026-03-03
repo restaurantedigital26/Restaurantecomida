@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify
+from flask import send_from_directory, abort
 from openai import OpenAI
 from pymongo import MongoClient
 import requests, os
@@ -18,52 +19,102 @@ app.secret_key = os.getenv("SECRET_KEY", "clave_super_secreta_123")
 
 # Configurar carpeta de uploads
 UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", "static/uploads")
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+print(f"📁 UPLOAD_FOLDER desde entorno: {UPLOAD_FOLDER}")
 
-# Crear subcarpetas necesarias
-os.makedirs(os.path.join(UPLOAD_FOLDER, "restaurantes"), exist_ok=True)
-os.makedirs(os.path.join(UPLOAD_FOLDER, "publicidad"), exist_ok=True)
-
-print(f"✅ Carpeta de uploads lista: {UPLOAD_FOLDER}")
+# Crear carpetas con verificación
+try:
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    os.makedirs(os.path.join(UPLOAD_FOLDER, "restaurantes"), exist_ok=True)
+    os.makedirs(os.path.join(UPLOAD_FOLDER, "publicidad"), exist_ok=True)
+    print(f"✅ Carpetas de uploads creadas/verificadas en: {UPLOAD_FOLDER}")
+    
+    # Verificar permisos de escritura
+    test_file = os.path.join(UPLOAD_FOLDER, "restaurantes", "test_write.txt")
+    with open(test_file, 'w') as f:
+        f.write("test")
+    os.remove(test_file)
+    print("✅ Permisos de escritura verificados")
+    
+except Exception as e:
+    print(f"❌ Error creando carpetas de uploads: {e}")
 
 # =========================
 # API KEYS
 # =========================
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_PLACES_API_KEY")
 
 if not GOOGLE_API_KEY:
     print("⚠️ ADVERTENCIA: GOOGLE_PLACES_API_KEY no configurada. El mapa podría no funcionar.")
 
+try:
+    client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
+    print("✅ OpenAI client inicializado correctamente")
+except TypeError as e:
+    print(f"⚠️ Error con la versión de OpenAI: {e}")
+    print("Intentando con configuración alternativa...")
+    client = None
+
 # =========================
-# OPENAI - CONFIGURACIÓN ROBUSTA
+# OPENAI - DIAGNÓSTICO COMPLETO
 # =========================
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
+print("="*60)
+print("🔍 DIAGNÓSTICO DE OPENAI")
+print("="*60)
+
+# Verificar si la variable existe
 if not OPENAI_API_KEY:
-    print("⚠️ ADVERTENCIA: OPENAI_API_KEY no configurada")
+    print("❌ ERROR CRÍTICO: OPENAI_API_KEY no está configurada")
+    print("   Ve a Render → Environment → Agrega OPENAI_API_KEY")
     client = None
 else:
+    print(f"✅ OPENAI_API_KEY está configurada")
+    print(f"   Longitud: {len(OPENAI_API_KEY)} caracteres")
+    print(f"   Formato: {'✅ Comienza con sk-' if OPENAI_API_KEY.startswith('sk-') else '❌ NO comienza con sk-'}")
+    print(f"   Primeros 10 chars: {OPENAI_API_KEY[:10]}...")
+    
     try:
-        # Intentar con la configuración estándar
+        print("🔄 Intentando crear cliente de OpenAI...")
+        from openai import OpenAI
         client = OpenAI(api_key=OPENAI_API_KEY)
-        # Probar la conexión
-        client.models.list()
-        print("✅ OpenAI client inicializado correctamente")
-    except TypeError as e:
-        print(f"⚠️ Error con versión de OpenAI: {e}")
-        print("Intentando configuración alternativa...")
+        print("✅ Cliente OpenAI creado exitosamente")
+        
+        # Hacer una llamada de prueba MUY simple
+        print("🔄 Probando conexión con OpenAI...")
         try:
-            # Configuración alternativa para versiones antiguas
-            import openai
-            openai.api_key = OPENAI_API_KEY
-            client = openai
-            print("✅ OpenAI configurado con API legacy")
-        except Exception as e2:
-            print(f"❌ Error crítico con OpenAI: {e2}")
-            client = None
+            test_response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": "Hola"}],
+                max_tokens=5,
+                temperature=0
+            )
+            print(f"✅ CONEXIÓN EXITOSA - Respuesta: {test_response.choices[0].message.content}")
+        except Exception as e:
+            print(f"❌ La conexión falló en la prueba: {type(e).__name__}")
+            print(f"❌ Detalle: {str(e)}")
+            
+            # Intentar con otro modelo como fallback
+            try:
+                print("🔄 Intentando con modelo alternativo gpt-3.5-turbo-instruct...")
+                test_response = client.completions.create(
+                    model="gpt-3.5-turbo-instruct",
+                    prompt="Hola",
+                    max_tokens=5
+                )
+                print(f"✅ CONEXIÓN EXITOSA con modelo alternativo")
+            except Exception as e2:
+                print(f"❌ También falló el modelo alternativo: {e2}")
+                client = None
+                
     except Exception as e:
-        print(f"❌ Error general con OpenAI: {e}")
+        print(f"❌ ERROR FATAL creando cliente: {type(e).__name__}")
+        print(f"❌ Detalle: {str(e)}")
         client = None
+
+print("="*60)
+
 
 # =========================
 # MONGODB ATLAS (USANDO VARIABLE DE ENTORNO)
@@ -346,341 +397,297 @@ def enviar_chat_platillo(restaurante_id, platillo_index):
     return redirect(url_for("detalle_platillo_cliente", restaurante_id=restaurante_id, platillo_index=platillo_index))
 
 # =========================
-# RESTAURANTE - VER CHATS POR PLATILLO
+# PROCESAR CONSULTA DE PLATILLO
 # =========================
-@app.route("/dashboard-restaurante/platillo-chats")
-def restaurante_platillo_chats():
-    if session.get("user_id") is None or session.get("tipo") != "restaurante":
-        return redirect(url_for("login"))
-
-    usuario = usuarios.find_one({"_id": ObjectId(session["user_id"])})
-    restaurante = restaurantes.find_one({"email": usuario["email"]})
-
-    if not restaurante:
-        return redirect(url_for("login"))
-
-    # Obtener todos los chats de platillos para este restaurante
-    chats_por_platillo = list(platillo_chats.find({
-        "restaurante_id": restaurante["_id"]
-    }).sort("fecha_inicio", -1))
-
-    return render_template(
-        "restaurante_platillo_chats.html",
-        nombre=session.get("nombre"),
-        restaurante=restaurante,
-        chats=chats_por_platillo
-    )
-
-# =========================
-# VISTA PÚBLICA DE RESTAURANTES (SIN LOGIN)
-# =========================
-@app.route("/restaurantes/publico")
-def ver_restaurantes_publico():
-    lista_restaurantes = list(restaurantes.find({}).limit(20))
-    return render_template("restaurantes_publico.html", restaurantes=lista_restaurantes)
-
-@app.route("/restaurante/publico/<id>")
-def detalle_restaurante_publico(id):
+def procesar_consulta_platillo(platillo_key, mensaje):
+    """Procesa consultas sobre un platillo específico"""
     try:
-        restaurante = restaurantes.find_one({"_id": ObjectId(id)})
-    except:
-        return "ID inválido"
+        nombre_platillo = PLATILLOS.get(platillo_key, platillo_key)
+        print(f"🍽️ Procesando consulta sobre: {nombre_platillo}")
 
-    if not restaurante:
-        return "Restaurante no encontrado"
+        # Buscar restaurantes que ofrecen este platillo
+        restaurantes_con_platillo = []
+        for rest in restaurantes.find():
+            if rest.get("menu"):
+                for platillo in rest["menu"]:
+                    if platillo_key in platillo.get("nombre", "").lower():
+                        restaurantes_con_platillo.append(rest)
+                        break
 
-    # ===== ASEGURAR CAMPOS DE CALIFICACIÓN =====
-    campos_calificacion = ['promedio_general', 'promedio_comida', 'promedio_servicio', 'total_calificaciones']
-    for campo in campos_calificacion:
-        if campo not in restaurante:
-            restaurante[campo] = 0.0 if 'promedio' in campo else 0
+        respuesta = f"🍽️ **{nombre_platillo}**\n\n"
+        
+        if restaurantes_con_platillo:
+            respuesta += "🏆 **RESTAURANTES QUE LO OFRECEN**\n"
+            respuesta += "═══════════════════════════\n\n"
+            for i, r in enumerate(restaurantes_con_platillo[:5], start=1):
+                respuesta += f"**{i}. {r['nombre']}**\n"
+                respuesta += f"   📍 {r.get('direccion', 'Ubicación no disponible')}\n"
+                respuesta += f"   📞 {r.get('telefono', 'Sin teléfono')}\n"
+                if r.get('promedio_general'):
+                    estrellas = "⭐" * int(r['promedio_general'])
+                    respuesta += f"   {estrellas} {r['promedio_general']}/5\n"
+                respuesta += "\n"
+        else:
+            respuesta += "❌ No hay restaurantes registrados para este platillo.\n\n"
+        
+        # Opiniones (solo si el usuario las pidió)
+        if pide_resenas(mensaje):
+            respuesta += "💬 **OPINIONES DE CLIENTES**\n"
+            respuesta += "═══════════════════════════\n\n"
+            
+            opiniones_encontradas = False
+            for rest in restaurantes_con_platillo[:2]:
+                comentarios_rest = list(comentarios.find(
+                    {"restaurante_id": rest["_id"]}
+                ).sort("fecha", -1).limit(2))
+                
+                if comentarios_rest:
+                    opiniones_encontradas = True
+                    respuesta += f"📌 **{rest['nombre']}**\n"
+                    for c in comentarios_rest:
+                        respuesta += f"   \"{c['comentario']}\"\n"
+                        respuesta += f"   — {c['cliente_nombre']}\n\n"
+            
+            if not opiniones_encontradas:
+                respuesta += "   Aún no hay opiniones para este platillo.\n"
+                respuesta += "   ¡Sé el primero en calificar!\n\n"
+        
+        # Promociones
+        promociones = []
+        for rest in restaurantes_con_platillo[:3]:
+            promos = list(publicidad.find({
+                "restaurante_id": rest["_id"],
+                "activa": True
+            }).limit(2))
+            for p in promos:
+                promociones.append({
+                    "restaurante": rest["nombre"],
+                    "titulo": p["titulo"],
+                    "descuento": p.get("descuento", "")
+                })
+        
+        if promociones:
+            respuesta += "🎁 **PROMOCIONES ACTIVAS**\n"
+            respuesta += "═══════════════════════════\n\n"
+            for p in promociones[:3]:
+                respuesta += f"**{p['restaurante']}**\n"
+                respuesta += f"   ✨ {p['titulo']}\n"
+                if p['descuento']:
+                    respuesta += f"   🔖 {p['descuento']}\n"
+                respuesta += "\n"
+        
+        respuesta += "───────────────────────────\n"
+        respuesta += "¿Necesitas más información? Solo pregúntame."
 
-    # ===== OBTENER PUBLICIDAD ACTIVA =====
-    ahora = datetime.datetime.now(datetime.UTC)
-    publicidad_activa = list(db.publicidad.find({
-        "restaurante_id": ObjectId(id),
-        "activa": True,
-        "$or": [
-            {"fecha_fin": {"$exists": False}},
-            {"fecha_fin": None},
-            {"fecha_fin": {"$gte": ahora}}
-        ]
-    }).sort("fecha_creacion", -1))
-    
-    restaurante['publicidad_activa'] = publicidad_activa
+        return jsonify({
+            "reply": respuesta,
+            "platillo": platillo_key
+        })
+        
+    except Exception as e:
+        print(f"❌ Error en procesar_consulta_platillo: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            "reply": f"Lo siento, no pude obtener información sobre {platillo_key}."
+        })
 
-    # ===== OBTENER COMENTARIOS =====
-    todos_comentarios = list(db.comentarios.find({"restaurante_id": ObjectId(id)}).sort("fecha", -1))
-
-    return render_template(
-        "detalle_restaurante_publico.html",
-        restaurante=restaurante,
-        comentarios=todos_comentarios,
-        google_maps_key=GOOGLE_API_KEY
-    )
 
 # =========================
-# CHAT IA
+# CHAT IA MEJORADO CON DIAGNÓSTICO
 # =========================
 @app.route("/chat", methods=["POST"])
 def chat():
-    mensaje = request.json.get("message", "")
-    
-    if not client:
-        return jsonify({"reply": "Lo siento, el servicio de IA no está disponible en este momento."})
-    
-    mensaje_lower = mensaje.lower()
-    
-    # ===== DETECTAR PREGUNTAS SOBRE RESTAURANTES EN GENERAL =====
-    palabras_restaurantes = ["qué restaurantes", "que restaurantes", "cuántos restaurantes", "cuantos restaurantes", 
-                             "lista de restaurantes", "todos los restaurantes", "restaurantes hay", 
-                             "restaurantes disponibles", "qué lugares", "que lugares"]
-    
-    if any(pregunta in mensaje_lower for pregunta in palabras_restaurantes):
-        # Obtener todos los restaurantes
-        todos_restaurantes = list(restaurantes.find().sort("nombre", 1))
+    try:
+        mensaje = request.json.get("message", "")
         
-        if not todos_restaurantes:
+        # DIAGNÓSTICO: Verificar cliente OpenAI
+        if not client:
+            print("❌ ERROR: Cliente OpenAI no inicializado")
+            print(f"   OPENAI_API_KEY presente: {'✅' if OPENAI_API_KEY else '❌'}")
             return jsonify({
-                "reply": "📭 No hay restaurantes registrados en el sistema aún."
+                "reply": "🤖 El asistente IA no está disponible en este momento.\n\n"
+                        "Posibles causas:\n"
+                        "• API key de OpenAI no configurada\n"
+                        "• Error de conexión con OpenAI\n\n"
+                        "Por favor, contacta al administrador."
             })
         
-        respuesta = f"🏪 **RESTAURANTES DISPONIBLES**\n"
-        respuesta += f"═══════════════════════════\n\n"
-        respuesta += f"📊 **Total:** {len(todos_restaurantes)} restaurantes\n\n"
+        print(f"📨 Mensaje recibido: '{mensaje}'")
+        mensaje_lower = mensaje.lower()
         
-        for i, r in enumerate(todos_restaurantes[:10], start=1):  # Limitar a 10 para no saturar
-            respuesta += f"**{i}. {r['nombre']}**\n"
-            respuesta += f"   📍 {r.get('direccion', 'Dirección no disponible')}\n"
-            respuesta += f"   📞 {r.get('telefono', 'Teléfono no disponible')}\n"
+        # ===== DETECTAR PREGUNTAS SOBRE RESTAURANTES EN GENERAL =====
+        palabras_restaurantes = ["qué restaurantes", "que restaurantes", "cuántos restaurantes", "cuantos restaurantes", 
+                                 "lista de restaurantes", "todos los restaurantes", "restaurantes hay", 
+                                 "restaurantes disponibles", "qué lugares", "que lugares"]
+        
+        if any(pregunta in mensaje_lower for pregunta in palabras_restaurantes):
+            print("🔍 Detectada consulta: lista de restaurantes")
+            # Obtener todos los restaurantes
+            todos_restaurantes = list(restaurantes.find().sort("nombre", 1))
             
-            # Calificación
+            if not todos_restaurantes:
+                return jsonify({
+                    "reply": "📭 No hay restaurantes registrados en el sistema aún."
+                })
+            
+            respuesta = f"🏪 **RESTAURANTES DISPONIBLES**\n"
+            respuesta += f"═══════════════════════════\n\n"
+            respuesta += f"📊 **Total:** {len(todos_restaurantes)} restaurantes\n\n"
+            
+            for i, r in enumerate(todos_restaurantes[:10], start=1):
+                respuesta += f"**{i}. {r['nombre']}**\n"
+                respuesta += f"   📍 {r.get('direccion', 'Dirección no disponible')}\n"
+                respuesta += f"   📞 {r.get('telefono', 'Teléfono no disponible')}\n"
+                
+                if r.get('promedio_general'):
+                    estrellas = "⭐" * int(r['promedio_general'])
+                    respuesta += f"   {estrellas} {r['promedio_general']}/5 ({r.get('total_calificaciones', 0)} opiniones)\n"
+                else:
+                    respuesta += f"   ⭐ Nuevo (sin calificaciones)\n"
+                
+                num_platillos = len(r.get('menu', []))
+                respuesta += f"   🍽️ {num_platillos} platillo{'s' if num_platillos != 1 else ''}\n"
+                
+                promos_activas = publicidad.count_documents({
+                    "restaurante_id": r["_id"],
+                    "activa": True
+                })
+                if promos_activas > 0:
+                    respuesta += f"   🎁 {promos_activas} promoción{'es' if promos_activas != 1 else ''} activa{'s' if promos_activas != 1 else ''}\n"
+                
+                respuesta += "\n"
+            
+            if len(todos_restaurantes) > 10:
+                respuesta += f"... y {len(todos_restaurantes) - 10} restaurantes más.\n\n"
+            
+            respuesta += "───────────────────────────\n"
+            respuesta += "¿Quieres información de algún restaurante en específico? Solo dime su nombre."
+            
+            return jsonify({"reply": respuesta})
+        
+        # ===== DETECTAR PREGUNTAS SOBRE UN RESTAURANTE ESPECÍFICO =====
+        restaurante_mencionado = None
+        for r in restaurantes.find():
+            if r["nombre"].lower() in mensaje_lower:
+                restaurante_mencionado = r
+                break
+        
+        if restaurante_mencionado:
+            print(f"🔍 Detectado restaurante: {restaurante_mencionado['nombre']}")
+            r = restaurante_mencionado
+            respuesta = f"🏪 **{r['nombre']}**\n"
+            respuesta += "═══════════════════════════\n\n"
+            respuesta += f"📝 **Descripción:** {r.get('descripcion', 'Sin descripción')}\n\n"
+            respuesta += f"📍 **Dirección:** {r.get('direccion', 'No disponible')}\n"
+            respuesta += f"📞 **Teléfono:** {r.get('telefono', 'No disponible')}\n"
+            
             if r.get('promedio_general'):
                 estrellas = "⭐" * int(r['promedio_general'])
-                respuesta += f"   {estrellas} {r['promedio_general']}/5 ({r.get('total_calificaciones', 0)} opiniones)\n"
-            else:
-                respuesta += f"   ⭐ Nuevo (sin calificaciones)\n"
+                respuesta += f"⭐ **Calificación:** {estrellas} {r['promedio_general']}/5 ({r.get('total_calificaciones', 0)} opiniones)\n"
             
-            # Platillos
-            num_platillos = len(r.get('menu', []))
-            respuesta += f"   🍽️ {num_platillos} platillo{'s' if num_platillos != 1 else ''}\n"
+            if r.get('menu'):
+                respuesta += f"\n🍽️ **Platillos destacados:**\n"
+                for i, p in enumerate(r['menu'][:3], start=1):
+                    respuesta += f"   {i}. **{p['nombre']}** - ${p['precio']}\n"
+                if len(r['menu']) > 3:
+                    respuesta += f"   ... y {len(r['menu']) - 3} platillos más\n"
             
-            # Promociones activas
-            promos_activas = publicidad.count_documents({
+            promos = list(publicidad.find({
                 "restaurante_id": r["_id"],
                 "activa": True
-            })
-            if promos_activas > 0:
-                respuesta += f"   🎁 {promos_activas} promoción{'es' if promos_activas != 1 else ''} activa{'s' if promos_activas != 1 else ''}\n"
+            }).limit(2))
             
-            respuesta += "\n"
+            if promos:
+                respuesta += f"\n🎁 **Promociones activas:**\n"
+                for p in promos:
+                    respuesta += f"   ✨ {p['titulo']}\n"
+                    if p.get('descuento'):
+                        respuesta += f"   🔖 {p['descuento']}\n"
+            
+            respuesta += "\n───────────────────────────\n"
+            respuesta += f"¿Quieres conocer más sobre algún platillo en específico?"
+            
+            return jsonify({"reply": respuesta})
         
-        if len(todos_restaurantes) > 10:
-            respuesta += f"... y {len(todos_restaurantes) - 10} restaurantes más.\n\n"
+        # Saludos
+        saludos = ["hola", "buenos días", "buenas tardes", "buenas noches", "qué tal", "que tal", "saludos"]
+        if any(saludo in mensaje_lower for saludo in saludos):
+            print("🔍 Detectado: saludo")
+            return jsonify({
+                "reply": "¡Hola! Soy el asistente gastronómico de Iguala. ¿En qué puedo ayudarte?\n\n"
+                        "Puedes preguntarme sobre:\n"
+                        "🍲 **Platillos típicos** (pozole, cochinita, tamales, etc.)\n"
+                        "🏪 **Restaurantes** (lista de restaurantes, información específica)\n"
+                        "⭐ **Opiniones de clientes**\n"
+                        "📅 **Promociones y eventos**"
+            })
         
-        respuesta += "───────────────────────────\n"
-        respuesta += "¿Quieres información de algún restaurante en específico? Solo dime su nombre."
+        # Ayuda
+        if "ayuda" in mensaje_lower or "qué puedes hacer" in mensaje_lower or "que puedes hacer" in mensaje_lower:
+            print("🔍 Detectado: solicitud de ayuda")
+            return jsonify({
+                "reply": "🤖 **¿Qué puedo hacer por ti?**\n\n"
+                        "✅ Mostrarte **todos los restaurantes** disponibles\n"
+                        "✅ Darte **información detallada** de un restaurante específico\n"
+                        "✅ Recomendarte los mejores **platillos típicos** de Iguala\n"
+                        "✅ Mostrarte dónde puedes encontrarlos\n"
+                        "✅ Compartir **opiniones y calificaciones** de clientes\n"
+                        "✅ Informarte sobre **promociones y eventos** especiales\n\n"
+                        "**Ejemplos de preguntas:**\n"
+                        "• '¿Qué restaurantes hay?'\n"
+                        "• 'Dime información de Doña Mari'\n"
+                        "• '¿Dónde hay buen pozole?'\n"
+                        "• 'Recomiéndame un lugar para comer cochinita'\n"
+                        "• 'Promociones en tamales'"
+            })
         
-        return jsonify({"reply": respuesta})
-    
-    # ===== DETECTAR PREGUNTAS SOBRE UN RESTAURANTE ESPECÍFICO =====
-    # Buscar si menciona algún restaurante por nombre
-    restaurante_mencionado = None
-    for r in restaurantes.find():
-        if r["nombre"].lower() in mensaje_lower:
-            restaurante_mencionado = r
-            break
-    
-    if restaurante_mencionado:
-        r = restaurante_mencionado
-        respuesta = f"🏪 **{r['nombre']}**\n"
-        respuesta += "═══════════════════════════\n\n"
-        respuesta += f"📝 **Descripción:** {r.get('descripcion', 'Sin descripción')}\n\n"
-        respuesta += f"📍 **Dirección:** {r.get('direccion', 'No disponible')}\n"
-        respuesta += f"📞 **Teléfono:** {r.get('telefono', 'No disponible')}\n"
+        # Detectar platillo
+        platillo_key = detectar_platillo(mensaje)
         
-        # Calificación
-        if r.get('promedio_general'):
-            estrellas = "⭐" * int(r['promedio_general'])
-            respuesta += f"⭐ **Calificación:** {estrellas} {r['promedio_general']}/5 ({r.get('total_calificaciones', 0)} opiniones)\n"
+        if platillo_key:
+            print(f"🔍 Detectado platillo: {platillo_key}")
+            return procesar_consulta_platillo(platillo_key, mensaje)
         
-        # Platillos destacados (primeros 3)
-        if r.get('menu'):
-            respuesta += f"\n🍽️ **Platillos destacados:**\n"
-            for i, p in enumerate(r['menu'][:3], start=1):
-                respuesta += f"   {i}. **{p['nombre']}** - ${p['precio']}\n"
-            if len(r['menu']) > 3:
-                respuesta += f"   ... y {len(r['menu']) - 3} platillos más\n"
-        
-        # Promociones activas
-        promos = list(publicidad.find({
-            "restaurante_id": r["_id"],
-            "activa": True
-        }).limit(2))
-        
-        if promos:
-            respuesta += f"\n🎁 **Promociones activas:**\n"
-            for p in promos:
-                respuesta += f"   ✨ {p['titulo']}\n"
-                if p.get('descuento'):
-                    respuesta += f"   🔖 {p['descuento']}\n"
-        
-        respuesta += "\n───────────────────────────\n"
-        respuesta += f"¿Quieres conocer más sobre algún platillo en específico?"
-        
-        return jsonify({"reply": respuesta})
-    
-    # Saludos
-    saludos = ["hola", "buenos días", "buenas tardes", "buenas noches", "qué tal", "que tal", "saludos"]
-    if any(saludo in mensaje_lower for saludo in saludos):
+        # Si no detecta nada específico
+        print("🔍 No se detectó ninguna consulta específica")
         return jsonify({
-            "reply": "¡Hola! Soy el asistente gastronómico de Iguala. ¿En qué puedo ayudarte?\n\n"
+            "reply": "🤔 No entendí bien tu pregunta.\n\n"
                     "Puedes preguntarme sobre:\n"
-                    "🍲 **Platillos típicos** (pozole, cochinita, tamales, etc.)\n"
-                    "🏪 **Restaurantes** (lista de restaurantes, información específica)\n"
-                    "⭐ **Opiniones de clientes**\n"
-                    "📅 **Promociones y eventos**"
+                    "- **Restaurantes:** '¿Qué restaurantes hay?', 'Información de Doña Mari'\n"
+                    "- **Platillos:** 'pozole', 'cochinita', 'tamales', 'barbacoa', 'elopozole'\n"
+                    "- **Opiniones:** '¿Qué opinan de Doña Mari?', 'reseñas de pozole'\n\n"
+                    "o escribe **'ayuda'** para más información."
         })
-    
-    # Ayuda
-    if "ayuda" in mensaje_lower or "qué puedes hacer" in mensaje_lower or "que puedes hacer" in mensaje_lower:
+        
+    except Exception as e:
+        print(f"❌ ERROR CRÍTICO en chat(): {type(e).__name__}")
+        print(f"❌ Detalle: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({
-            "reply": "🤖 **¿Qué puedo hacer por ti?**\n\n"
-                    "✅ Mostrarte **todos los restaurantes** disponibles\n"
-                    "✅ Darte **información detallada** de un restaurante específico\n"
-                    "✅ Recomendarte los mejores **platillos típicos** de Iguala\n"
-                    "✅ Mostrarte dónde puedes encontrarlos\n"
-                    "✅ Compartir **opiniones y calificaciones** de clientes\n"
-                    "✅ Informarte sobre **promociones y eventos** especiales\n\n"
-                    "**Ejemplos de preguntas:**\n"
-                    "• '¿Qué restaurantes hay?'\n"
-                    "• 'Dime información de Doña Mari'\n"
-                    "• '¿Dónde hay buen pozole?'\n"
-                    "• 'Recomiéndame un lugar para comer cochinita'\n"
-                    "• 'Promociones en tamales'"
-        })
-    
-    # Detectar platillo
-    platillo_key = detectar_platillo(mensaje)
-    
-    if platillo_key:
-        return procesar_consulta_platillo(platillo_key, mensaje)
-    
-    # Si no detecta nada específico
-    return jsonify({
-        "reply": "🤔 No entendí bien tu pregunta.\n\n"
-                "Puedes preguntarme sobre:\n"
-                "- **Restaurantes:** '¿Qué restaurantes hay?', 'Información de Doña Mari'\n"
-                "- **Platillos:** 'pozole', 'cochinita', 'tamales', 'barbacoa', 'elopozole'\n"
-                "- **Opiniones:** '¿Qué opinan de Doña Mari?', 'reseñas de pozole'\n\n"
-                "o escribe **'ayuda'** para más información."
-    })
+            "reply": "Lo siento, ocurrió un error interno. Por favor intenta de nuevo más tarde."
+        }), 500
 
-def procesar_consulta_platillo(platillo_key, mensaje):
-    """Procesa consultas sobre un platillo específico"""
-    nombre_platillo = PLATILLOS[platillo_key]
-
-    # Buscar restaurantes que ofrecen este platillo
-    restaurantes_con_platillo = []
-    for rest in restaurantes.find():
-        if rest.get("menu"):
-            for platillo in rest["menu"]:
-                if platillo_key in platillo.get("nombre", "").lower():
-                    restaurantes_con_platillo.append(rest)
-                    break
-
-    respuesta = f"🍽️ **{nombre_platillo}**\n\n"
-    
-    if restaurantes_con_platillo:
-        respuesta += "🏆 **RESTAURANTES QUE LO OFRECEN**\n"
-        respuesta += "═══════════════════════════\n\n"
-        for i, r in enumerate(restaurantes_con_platillo[:5], start=1):
-            respuesta += f"**{i}. {r['nombre']}**\n"
-            respuesta += f"   📍 {r.get('direccion', 'Ubicación no disponible')}\n"
-            respuesta += f"   📞 {r.get('telefono', 'Sin teléfono')}\n"
-            if r.get('promedio_general'):
-                estrellas = "⭐" * int(r['promedio_general'])
-                respuesta += f"   {estrellas} {r['promedio_general']}/5\n"
-            respuesta += "\n"
-    else:
-        respuesta += "❌ No hay restaurantes registrados para este platillo.\n\n"
-    
-    # Opiniones
-    if pide_resenas(mensaje):
-        respuesta += "💬 **OPINIONES DE CLIENTES**\n"
-        respuesta += "═══════════════════════════\n\n"
-        
-        opiniones_encontradas = False
-        for rest in restaurantes_con_platillo[:2]:
-            comentarios_rest = list(comentarios.find(
-                {"restaurante_id": rest["_id"]}
-            ).sort("fecha", -1).limit(2))
-            
-            if comentarios_rest:
-                opiniones_encontradas = True
-                respuesta += f"📌 **{rest['nombre']}**\n"
-                for c in comentarios_rest:
-                    respuesta += f"   \"{c['comentario']}\"\n"
-                    respuesta += f"   — {c['cliente_nombre']}\n\n"
-        
-        if not opiniones_encontradas:
-            respuesta += "   Aún no hay opiniones para este platillo.\n"
-            respuesta += "   ¡Sé el primero en calificar!\n\n"
-    
-    # Promociones
-    promociones = []
-    for rest in restaurantes_con_platillo[:3]:
-        promos = list(publicidad.find({
-            "restaurante_id": rest["_id"],
-            "activa": True
-        }).limit(2))
-        for p in promos:
-            promociones.append({
-                "restaurante": rest["nombre"],
-                "titulo": p["titulo"],
-                "descuento": p.get("descuento", "")
-            })
-    
-    if promociones:
-        respuesta += "🎁 **PROMOCIONES ACTIVAS**\n"
-        respuesta += "═══════════════════════════\n\n"
-        for p in promociones[:3]:
-            respuesta += f"**{p['restaurante']}**\n"
-            respuesta += f"   ✨ {p['titulo']}\n"
-            if p['descuento']:
-                respuesta += f"   🔖 {p['descuento']}\n"
-            respuesta += "\n"
-    
-    respuesta += "───────────────────────────\n"
-    respuesta += "¿Necesitas más información? Solo pregúntame."
-
-    return jsonify({
-        "reply": respuesta,
-        "platillo": platillo_key
-    })
-
-    # =========================
-    # RESEÑAS DESDE MONGO
-    # =========================
-    if pide_resenas(mensaje):
-        resenas = list(
-            reviews.find({"platillo": nombre_platillo}).limit(5)
-        )
-
-        if resenas:
-            respuesta += "📝 **Reseñas de clientes:**\n\n"
-            for r in resenas:
-                respuesta += (
-                    f"⭐ {r.get('puntuacion', 'N/A')}/5\n"
-                    f"“{r.get('comentario', '')}”\n\n"
-                )
-        else:
-            respuesta += "📝 Aún no tengo reseñas registradas para este platillo.\n"
-
-    return jsonify({
-        "reply": respuesta,
-        "platillo": platillo_key
-    })
+# =========================
+# SERVIR IMÁGENES DESDE UPLOAD_FOLDER
+# =========================
+@app.route('/uploads/<path:filename>')
+def uploaded_file(filename):
+    """Sirve archivos desde la carpeta de uploads"""
+    try:
+        # Intenta servir desde UPLOAD_FOLDER
+        return send_from_directory(UPLOAD_FOLDER, filename)
+    except FileNotFoundError:
+        # Si no encuentra, intenta desde static/uploads (para desarrollo local)
+        try:
+            return send_from_directory('static/uploads', filename)
+        except FileNotFoundError:
+            # Si no hay imagen, sirve un placeholder
+            return send_from_directory('static/img', 'no-image.png')
+    except Exception as e:
+        print(f"❌ Error sirviendo imagen {filename}: {e}")
+        abort(404)
 
 # =========================
 # REGISTRO
