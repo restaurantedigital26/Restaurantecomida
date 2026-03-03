@@ -1383,29 +1383,28 @@ def debug_ver_publicidad():
 # =========================
 # DEBUG - VER IMÁGENES
 # =========================
-@app.route("/debug/imagenes")
+@app.route('/debug/imagenes')
 def debug_imagenes():
-    if session.get("tipo") != "admin":
-        return redirect(url_for("login"))
-    
+    """Muestra todas las imágenes guardadas en el servidor"""
     import os
-    from pathlib import Path
-    
-    carpeta = os.path.join(UPLOAD_FOLDER, "restaurantes")
     resultado = {
-        "carpeta": carpeta,
-        "existe": os.path.exists(carpeta),
-        "archivos": []
+        "upload_folder": UPLOAD_FOLDER,
+        "carpeta_existe": os.path.exists(UPLOAD_FOLDER),
+        "contenido": {}
     }
     
-    if os.path.exists(carpeta):
-        for archivo in os.listdir(carpeta):
-            ruta_completa = os.path.join(carpeta, archivo)
-            resultado["archivos"].append({
-                "nombre": archivo,
-                "tamaño": os.path.getsize(ruta_completa),
-                "modificado": datetime.datetime.fromtimestamp(os.path.getmtime(ruta_completa)).strftime('%Y-%m-%d %H:%M:%S')
-            })
+    # Explorar carpetas
+    for carpeta in ['publicidad', 'restaurantes']:
+        ruta = os.path.join(UPLOAD_FOLDER, carpeta)
+        if os.path.exists(ruta):
+            try:
+                archivos = os.listdir(ruta)
+                resultado["contenido"][carpeta] = archivos
+                print(f"📁 {carpeta}: {len(archivos)} archivos")
+            except Exception as e:
+                resultado["contenido"][carpeta] = f"Error: {e}"
+        else:
+            resultado["contenido"][carpeta] = "Carpeta no existe"
     
     return resultado
 
@@ -2327,34 +2326,6 @@ INSTRUCCIONES IMPORTANTES:
     except Exception as e:
         print(f"Error en chat IA: {e}")
         return jsonify({"error": "Error procesando la consulta"}), 500
-    
-
-#VER IMAGENES
-
-@app.route('/debug/imagenes')
-def debug_imagenes():
-    """Muestra todas las imágenes guardadas en el servidor"""
-    import os
-    resultado = {
-        "upload_folder": UPLOAD_FOLDER,
-        "carpeta_existe": os.path.exists(UPLOAD_FOLDER),
-        "contenido": {}
-    }
-    
-    # Explorar carpetas
-    for carpeta in ['publicidad', 'restaurantes']:
-        ruta = os.path.join(UPLOAD_FOLDER, carpeta)
-        if os.path.exists(ruta):
-            try:
-                archivos = os.listdir(ruta)
-                resultado["contenido"][carpeta] = archivos
-                print(f"📁 {carpeta}: {len(archivos)} archivos")
-            except Exception as e:
-                resultado["contenido"][carpeta] = f"Error: {e}"
-        else:
-            resultado["contenido"][carpeta] = "Carpeta no existe"
-    
-    return resultado
 
 # =========================
 # EJECUCIÓN
