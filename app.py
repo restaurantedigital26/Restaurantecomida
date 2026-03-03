@@ -2295,12 +2295,12 @@ INSTRUCCIONES IMPORTANTES:
         mensajes_api.append({"role": "user", "content": mensaje})
 
         # 5. Llamar a OpenAI (usando tu misma API)
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",  # O el modelo que uses
-            messages=mensajes_api,
-            temperature=0.7,
-            max_tokens=300
-        )
+        response = openai.ChatCompletion.create(
+    model="gpt-3.5-turbo",
+    messages=mensajes_api,
+    temperature=0.7,
+    max_tokens=300
+)
 
         respuesta_ia = response.choices[0].message.content
 
