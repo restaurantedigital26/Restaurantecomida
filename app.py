@@ -1168,6 +1168,26 @@ def admin_eliminar_cliente(cliente_id):
         print(f"❌ Error al eliminar cliente: {e}")
         return "Error interno del servidor"
 
+# =========================
+# VISTA PÚBLICA DE RESTAURANTES (SIN LOGIN)
+# =========================
+@app.route("/restaurantes/publico")
+def ver_restaurantes_publico():
+    # No requiere login - cualquiera puede ver
+    lista_restaurantes = list(restaurantes.find({}).limit(20))
+    return render_template("restaurantes_publico.html", restaurantes=lista_restaurantes)
+
+@app.route("/restaurante/publico/<id>")
+def detalle_restaurante_publico(id):
+    try:
+        restaurante = restaurantes.find_one({"_id": ObjectId(id)})
+    except:
+        return "ID inválido"
+    
+    if not restaurante:
+        return "Restaurante no encontrado"
+    
+    return render_template("detalle_restaurante_publico.html", restaurante=restaurante)
 
 # =========================
 # ADMIN - ELIMINAR COMENTARIO
