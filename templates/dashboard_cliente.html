@@ -261,8 +261,7 @@
                     </div>
                     
                     {% if pub.imagen %}
-                    <img src="{{ url_for('uploaded_file', filename='publicidad/' + pub.imagen) }}" 
-                         alt="{{ pub.titulo }}" class="publicidad-img">
+                    <img src="{{ url_for('uploaded_file', filename='publicidad/' + pub.imagen) }}">
                     {% endif %}
                     
                     <div class="publicidad-contenido">

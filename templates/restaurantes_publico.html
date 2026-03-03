@@ -345,8 +345,7 @@
                 <div class="card-scroll" onclick="window.location.href='{{ url_for('detalle_restaurante_publico', id=r._id) }}'">
                     <!-- ===== NUEVO: Mostrar imagen del restaurante si existe ===== -->
                     {% if r.imagen_restaurante %}
-                        <img src="{{ url_for('static', filename='uploads/restaurantes/' + r.imagen_restaurante) }}" 
-                        alt="{{ r.nombre }}" class="card-img">
+                    <img src="{{ url_for('uploaded_file', filename='restaurantes/' + r.imagen_restaurante) }}">
                     {% else %}
                         <div class="card-img-placeholder">
                             <i class="fas fa-store"></i>

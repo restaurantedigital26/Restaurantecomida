@@ -270,7 +270,7 @@
 
             {% if platillo.foto %}
             <div class="platillo-imagen">
-                <img src="{{ url_for('static', filename='uploads/' + platillo.foto) }}" alt="{{ platillo.nombre }}">
+                <img src="{{ url_for('static', filename='uploads/' + platillo.foto) }}">
             </div>
             {% endif %}
 
