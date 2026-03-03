@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ platillo.nombre }} - {{ restaurante.nombre }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #fafafa;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .header-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .btn-volver {
+            background-color: #7a3e1d;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+        }
+        .platillo-detalle {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .platillo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .platillo-header h1 {
+            color: #7a3e1d;
+            margin: 0;
+        }
+        .platillo-precio {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+        .platillo-imagen {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .platillo-imagen img {
+            max-width: 400px;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 15px;
+        }
+        .platillo-descripcion {
+            background: #f9f4ec;
+            padding: 20px;
+            border-radius: 10px;
+            line-height: 1.6;
+        }
+        .acciones {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn-editar {
+            background-color: #2196F3;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-eliminar {
+            background-color: #f44336;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: inline-block;
+        }
+        .btn-ia {
+            background-color: #9C27B0;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-ia:hover {
+            background-color: #7B1FA2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-nav">
+            <a href="{{ url_for('dashboard_restaurante') }}" class="btn-volver">
+                <i class="fas fa-arrow-left"></i> Volver al Dashboard
+            </a>
+        </div>
+
+        <div class="platillo-detalle">
+            <div class="platillo-header">
+                <h1><i class="fas fa-utensils"></i> {{ platillo.nombre }}</h1>
+                <span class="platillo-precio">${{ platillo.precio }}</span>
+            </div>
+
+            {% if platillo.foto %}
+            <div class="platillo-imagen">
+                <img src="{{ url_for('static', filename='uploads/' + platillo.foto) }}" alt="{{ platillo.nombre }}">
+            </div>
+            {% endif %}
+
+            <div class="platillo-descripcion">
+                <h3>Descripción:</h3>
+                <p>{{ platillo.descripcion }}</p>
+            </div>
+
+            <div class="acciones">
+                <a href="{{ url_for('editar_platillo', restaurante_id=restaurante._id, platillo_index=platillo_index) }}" class="btn-editar">
+                    <i class="fas fa-edit"></i> Editar Platillo
+                </a>
+                
+                <form action="{{ url_for('eliminar_platillo', restaurante_id=restaurante._id, platillo_index=platillo_index) }}" method="POST" style="display: inline;" onsubmit="return confirm('¿Eliminar este platillo?')">
+                    <button type="submit" class="btn-eliminar">
+                        <i class="fas fa-trash"></i> Eliminar Platillo
+                    </button>
+                </form>
+                
+                <!-- Botón para configurar IA (CORREGIDO - AHORA FUERA DEL FORM) -->
+                <a href="{{ url_for('configurar_ia_platillo', restaurante_id=restaurante._id, platillo_index=platillo_index) }}" class="btn-ia">
+                    <i class="fas fa-robot"></i> Configurar Asistente IA
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Restaurante</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #fafafa;
+        }
+
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* PANEL IZQUIERDO DESPLEGABLE - MANTENIENDO EL ESTILO MODERNO QUE YA TENÍAS */
+        .sidebar {
+            width: 280px;
+            background-color: #f0f0f0;
+            color: #333;
+            padding: 20px;
+            border-radius: 0 10px 10px 0;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            z-index: 100;
+            overflow-y: auto;
+        }
+
+        .sidebar.hidden {
+            transform: translateX(-300px);
+        }
+
+        .sidebar h2 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #444;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+
+        .sidebar ul li {
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            background-color: #fff;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .sidebar ul li:hover, .sidebar ul li.active {
+            background-color: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+
+        .sidebar ul li:hover small, .sidebar ul li.active small {
+            color: white !important;
+        }
+
+        .sidebar ul li:hover i, .sidebar ul li.active i {
+            color: white !important;
+        }
+
+        .comentarios {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .comentario-card {
+            background-color: #fff;
+            padding: 8px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #ddd;
+            font-size: 0.9rem;
+        }
+
+        /* NUEVO BOTÓN DE MENÚ HAMBURGUESA (estilo similar al toggle-sidebar original) */
+        .menu-hamburguesa {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            width: 45px;
+            height: 45px;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .menu-hamburguesa:hover {
+            background-color: #45a049;
+        }
+
+        .menu-hamburguesa span {
+            width: 25px;
+            height: 3px;
+            background-color: white;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        .menu-hamburguesa.active span:nth-child(1) {
+            transform: rotate(45deg) translate(6px, 6px);
+        }
+
+        .menu-hamburguesa.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .menu-hamburguesa.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(6px, -6px);
+        }
+
+        /* Pestañas para chats y comentarios (nuevo pero con estilo acorde) */
+        .sidebar-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background-color: #e0e0e0;
+            padding: 5px;
+            border-radius: 8px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            background: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #666;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            font-size: 0.9rem;
+        }
+
+        .tab-btn i {
+            font-size: 1rem;
+        }
+
+        .tab-btn.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .tab-btn:not(.active):hover {
+            background-color: #d0d0d0;
+        }
+
+        /* Contenido de las pestañas */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Badge para notificaciones */
+        .badge {
+            background-color: #ff4444;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 0.7rem;
+            margin-left: 5px;
+        }
+
+        /* Estilo para la vista previa del último mensaje */
+        .ultimo-mensaje-preview {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            font-size: 0.8rem;
+            margin-top: 3px;
+            color: #666;
+        }
+
+        .ultimo-mensaje-preview i {
+            font-size: 0.7rem;
+            margin-right: 3px;
+        }
+
+        .mensaje-enviado {
+            color: #4CAF50;
+        }
+
+        /* PANEL DERECHO - ajuste por el menú fijo */
+        .main-panel {
+            flex: 1;
+            padding: 20px;
+            margin-left: 280px;
+            transition: margin-left 0.3s ease;
+            width: calc(100% - 280px);
+        }
+
+        .main-panel.expanded {
+            margin-left: 0;
+            width: 100%;
+        }
+
+        /* El resto de estilos se mantienen exactamente igual */
+        h1, h2 {
+            color: #333;
+        }
+
+        .datos-restaurante, .menu, .comentarios, .chat-container {
+            margin-bottom: 20px;
+        }
+
+        .datos-restaurante {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .platillo-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            background-color: #fff;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .platillo-card img {
+            max-width: 150px;
+            max-height: 150px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .platillo-card h3 {
+            margin: 5px 0;
+            color: #333;
+        }
+
+        .platillo-card p {
+            margin: 5px 0;
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        .acciones {
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .acciones button {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .editar {
+            background-color: #2196F3;
+            color: white;
+        }
+
+        .eliminar {
+            background-color: #f44336;
+            color: white;
+        }
+
+        /* CHAT */
+        .chat-box {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            height: 400px;
+            overflow-y: auto;
+            background-color: #fff;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .mensaje-card {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 5px;
+            max-width: 80%;
+            word-wrap: break-word;
+            position: relative;
+        }
+
+        .mensaje-cliente {
+            background-color: #f1f1f1;
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+
+        .mensaje-restaurante {
+            background-color: #4CAF50;
+            color: white;
+            align-self: flex-end;
+            text-align: right;
+            border-bottom-right-radius: 2px;
+        }
+
+        .mensaje-header {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 3px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .mensaje-restaurante .mensaje-header {
+            justify-content: flex-end;
+        }
+
+        .mensaje-texto {
+            margin: 3px 0;
+            line-height: 1.4;
+        }
+
+        .mensaje-fecha {
+            font-size: 0.7rem;
+            display: block;
+            margin-top: 3px;
+            opacity: 0.8;
+        }
+
+        .mensaje-restaurante .mensaje-fecha {
+            color: rgba(255,255,255,0.8);
+        }
+
+        .mensaje-cliente .mensaje-fecha {
+            color: #888;
+        }
+
+        form textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            resize: none;
+            font-family: Arial, sans-serif;
+        }
+
+        form button {
+            margin-top: 5px;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            width: 100%;
+        }
+
+        form button:hover {
+            background-color: #45a049;
+        }
+
+        /* Check de enviado */
+        .check-enviado {
+            font-size: 0.7rem;
+            margin-left: 3px;
+        }
+
+        /* BOTÓN DE PUBLICIDAD */
+        .btn-publicidad {
+            background-color: #FF9800;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+        .btn-publicidad:hover {
+            background-color: #F57C00;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Botón menú hamburguesa -->
+<button class="menu-hamburguesa" id="menuToggle">
+    <span></span>
+    <span></span>
+    <span></span>
+</button>
+
+<div class="dashboard-container">
+    <!-- PANEL IZQUIERDO: CON PESTAÑAS PARA CHATS Y COMENTARIOS -->
+    <div class="sidebar" id="sidebar">
+        <!-- Pestañas -->
+        <div class="sidebar-tabs">
+            <button class="tab-btn active" onclick="switchTab('chats')">
+                <i class="fas fa-comments"></i> Chats
+                {% if chat and chat.clientes %}
+                    <span class="badge">{{ chat.clientes|length }}</span>
+                {% endif %}
+            </button>
+            <button class="tab-btn" onclick="switchTab('comentarios')">
+                <i class="fas fa-star"></i> Comentarios
+                {% if comentarios %}
+                    <span class="badge">{{ comentarios|length }}</span>
+                {% endif %}
+            </button>
+        </div>
+
+        <!-- Contenido: Chats (MEJORADO para mostrar vista previa) -->
+<div id="tabChats" class="tab-content active">
+    <h2><i class="fas fa-comment-dots"></i> Conversaciones por Platillo</h2>
+    {% if chat and chat.clientes %}
+        {% for cliente in chat.clientes %}
+            <div style="margin-bottom: 15px;">
+                <div style="background-color: #e0e0e0; padding: 8px; border-radius: 5px; margin-bottom: 5px;">
+                    <strong><i class="fas fa-user"></i> {{ cliente.cliente_nombre }}</strong>
+                </div>
+                {% for chat_item in cliente.chats_por_platillo %}
+                    <div onclick="mostrarChatPlatillo('{{ chat_item.chat_id }}')" 
+                         style="padding: 8px; margin-left: 10px; margin-bottom: 5px; background-color: #fff; border: 1px solid #ddd; border-radius: 5px; cursor: pointer; {% if chat_selected and chat_selected.chat_id == chat_item.chat_id %}background-color: #4CAF50; color: white;{% endif %}">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span><i class="fas fa-utensils"></i> {{ chat_item.platillo_nombre }}</span>
+                            <small>{{ chat_item.ultimo_mensaje_fecha.strftime("%H:%M") if chat_item.ultimo_mensaje_fecha else '' }}</small>
+                        </div>
+                        <small style="{% if chat_selected and chat_selected.chat_id == chat_item.chat_id %}color: white;{% else %}color: #666;{% endif %}">
+                            {% if chat_item.ultimo_mensaje_tipo == 'Restaurante' %}
+                                <i class="fas fa-check" style="color: #4CAF50;"></i> Tú:
+                            {% else %}
+                                <i class="fas fa-user"></i> Cliente:
+                            {% endif %}
+                            {{ chat_item.ultimo_mensaje }}
+                        </small>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <p style="text-align: center; color: #666; padding: 20px;">
+            <i class="far fa-comment-dots" style="font-size: 2rem; margin-bottom: 10px;"></i><br>
+            No hay conversaciones aún
+        </p>
+    {% endif %}
+</div>
+
+        <!-- Contenido: Comentarios (se mantiene igual) -->
+        <div id="tabComentarios" class="tab-content">
+            <h2><i class="fas fa-star"></i> Comentarios</h2>
+            <div class="comentarios">
+                {% if comentarios %}
+                    {% for c in comentarios %}
+                        <div class="comentario-card">
+                            <p><strong><i class="fas fa-user"></i> {{ c.cliente_nombre }}:</strong> {{ c.comentario }}</p>
+                            <small><i class="far fa-clock"></i> {{ c.fecha.strftime("%d %b %Y - %H:%M") }}</small>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p>Aún no hay comentarios</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- PANEL DERECHO -->
+    <div class="main-panel" id="mainPanel">
+        <h1>Bienvenido {{ nombre }}</h1>
+
+        <!-- BOTÓN DE PUBLICIDAD -->
+        <a href="{{ url_for('gestionar_publicidad') }}" class="btn-publicidad">
+            <i class="fas fa-bullhorn"></i> Gestionar Publicidad y Ofertas
+        </a>
+
+        <!-- DATOS RESTAURANTE (actualizado) -->
+<div class="datos-restaurante">
+    <h2>Información General</h2>
+    <p><strong>Descripción:</strong> {{ restaurante.descripcion or 'Sin descripción' }}</p>
+    <p><strong>Dirección:</strong> {{ restaurante.direccion or 'No disponible' }}</p>
+    <p><strong>Teléfono:</strong> {{ restaurante.telefono or 'No disponible' }}</p>
+    <p><strong>Redes sociales:</strong>
+    {% if restaurante.redes_sociales %}
+        {% if restaurante.redes_sociales is mapping %}
+            {% for tipo, url in restaurante.redes_sociales.items() %}
+                {% set url_completa = url if url.startswith('http') else 'https://' + url %}
+                <a href="{{ url_completa }}" target="_blank" rel="noopener noreferrer" style="margin-right: 10px;">
+                    <i class="fab fa-{{ tipo }}"></i> {{ tipo|capitalize }}
+                </a>
+            {% endfor %}
+        {% else %}
+            {% set url_completa = restaurante.redes_sociales if restaurante.redes_sociales.startswith('http') else 'https://' + restaurante.redes_sociales %}
+            <a href="{{ url_completa }}" target="_blank" rel="noopener noreferrer">{{ restaurante.redes_sociales }}</a>
+        {% endif %}
+    {% else %}
+        No disponible
+    {% endif %}
+</p>
+
+    <!-- SECCIÓN DE CALIFICACIONES PARA EL RESTAURANTE -->
+    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd;">
+        <p><strong>⭐ Calificaciones:</strong></p>
+        <p>Comida: {{ restaurante.promedio_comida|round(1) if restaurante.promedio_comida else '0.0' }} / 5 
+           ({{ restaurante.total_calificaciones or 0 }} calificaciones)</p>
+        <p>Servicio: {{ restaurante.promedio_servicio|round(1) if restaurante.promedio_servicio else '0.0' }} / 5</p>
+    </div>
+</div>
+
+<!-- MAPA DEL RESTAURANTE (solo para el dueño) -->
+{% if restaurante.ubicacion and restaurante.ubicacion.lat and restaurante.ubicacion.lng %}   
+{% include 'mapa_restaurante.html' %}
+{% endif %}
+
+        <!-- MENÚ CON SCROLL LATERAL -->
+<h2 style="display: flex; justify-content: space-between; align-items: center;">
+    <span><i class="fas fa-book-open"></i> Menú</span>
+    <a href="{{ url_for('subir_menu') }}" style="background-color: #4CAF50; color: white; padding: 8px 15px; border-radius: 5px; text-decoration: none; font-size: 0.9rem;">
+        <i class="fas fa-plus-circle"></i> Agregar Platillo
+    </a>
+</h2>
+
+<style>
+    .menu-scroll-container {
+        width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        white-space: nowrap;
+        padding: 10px 0;
+        margin-bottom: 20px;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .menu-scroll-container::-webkit-scrollbar {
+        height: 8px;
+    }
+    
+    .menu-scroll-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+    
+    .menu-scroll-container::-webkit-scrollbar-thumb {
+        background: #4CAF50;
+        border-radius: 10px;
+    }
+    
+    .menu-scroll-container::-webkit-scrollbar-thumb:hover {
+        background: #45a049;
+    }
+    
+    .menu-scroll {
+        display: inline-flex;
+        gap: 20px;
+        flex-wrap: nowrap;
+    }
+    
+    .platillo-card-scroll {
+        width: 250px;
+        min-width: 250px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 10px;
+        background-color: #fff;
+        text-align: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        white-space: normal;
+        word-wrap: break-word;
+        cursor: pointer;
+    }
+    
+    .platillo-card-scroll:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        border-color: #4CAF50;
+    }
+    
+    .platillo-card-scroll img {
+        max-width: 150px;
+        max-height: 150px;
+        object-fit: cover;
+        border-radius: 5px;
+        margin-bottom: 10px;
+    }
+    
+    .platillo-card-scroll h3 {
+        margin: 5px 0;
+        color: #333;
+        white-space: normal;
+    }
+    
+    .platillo-card-scroll p {
+        margin: 5px 0;
+        color: #555;
+        font-size: 0.9rem;
+        white-space: normal;
+    }
+    
+    .scroll-controls {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .scroll-btn {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    
+    .scroll-btn:hover {
+        background-color: #45a049;
+    }
+    
+    .scroll-btn:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+    }
+</style>
+
+{% if restaurante.menu %}
+    <div class="scroll-controls">
+        <button class="scroll-btn" onclick="scrollMenu('left')" id="scrollLeftBtn">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="scroll-btn" onclick="scrollMenu('right')" id="scrollRightBtn">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+    
+    <div class="menu-scroll-container" id="menuScrollContainer">
+        <div class="menu-scroll">
+            {% for platillo in restaurante.menu %}
+                <div class="platillo-card-scroll" onclick="window.location.href='{{ url_for('detalle_platillo_restaurante', restaurante_id=restaurante._id, platillo_index=loop.index0) }}'">
+                    <h3>{{ platillo.nombre }}</h3>
+                    {% if platillo.foto %}
+                        <img src="{{ url_for('static', filename='uploads/' + platillo.foto) }}" alt="{{ platillo.nombre }}">
+                    {% endif %}
+                    <p>{{ platillo.descripcion[:100] }}{% if platillo.descripcion and platillo.descripcion|length > 100 %}...{% endif %}</p>
+                    <p><strong>Precio:</strong> ${{ platillo.precio }}</p>
+                    <div style="margin-top: 10px; color: #4CAF50;">
+                        <i class="fas fa-info-circle"></i> Ver más
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% else %}
+    <div style="text-align: center; padding: 40px; background: #f9f9f9; border-radius: 8px; margin-top: 20px;">
+        <i class="fas fa-utensils" style="font-size: 3rem; color: #ccc; margin-bottom: 15px;"></i>
+        <p style="color: #666; margin-bottom: 20px;">No hay platillos registrados</p>
+        <a href="{{ url_for('subir_menu') }}" style="background-color: #4CAF50; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; display: inline-block;">
+            <i class="fas fa-plus-circle"></i> Agregar tu primer platillo
+        </a>
+    </div>
+{% endif %}
+
+<script>
+    function scrollMenu(direction) {
+        const container = document.getElementById('menuScrollContainer');
+        const scrollAmount = 300;
+        
+        if (direction === 'left') {
+            container.scrollLeft -= scrollAmount;
+        } else {
+            container.scrollLeft += scrollAmount;
+        }
+        
+        // Actualizar estado de botones
+        setTimeout(() => {
+            document.getElementById('scrollLeftBtn').disabled = container.scrollLeft <= 0;
+            document.getElementById('scrollRightBtn').disabled = 
+                container.scrollLeft >= container.scrollWidth - container.clientWidth;
+        }, 100);
+    }
+    
+    // Verificar scroll al cargar
+    window.addEventListener('load', function() {
+        const container = document.getElementById('menuScrollContainer');
+        if (container) {
+            setTimeout(() => {
+                document.getElementById('scrollLeftBtn').disabled = container.scrollLeft <= 0;
+                document.getElementById('scrollRightBtn').disabled = 
+                    container.scrollLeft >= container.scrollWidth - container.clientWidth;
+            }, 100);
+        }
+    });
+</script>
+        <!-- CHAT (CORREGIDO: cliente izquierda, restaurante derecha) -->
+<!-- CHAT (MODIFICADO PARA CHATS DE PLATILLOS) -->
+{% if chat_selected %}
+    <h2>💬 Chat con {{ chat_selected.cliente_nombre }} 
+        {% if chat_selected.tipo == 'platillo' %}
+            sobre {{ chat_selected.platillo_nombre }}
+        {% endif %}
+    </h2>
+    <div style="background-color: #e8f5e8; padding: 10px; border-radius: 5px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+        <i class="fas {% if chat_selected.tipo == 'platillo' %}fa-utensils{% else %}fa-comments{% endif %}" 
+           style="color: #4CAF50; font-size: 1.2rem;"></i>
+        <strong>
+            {% if chat_selected.tipo == 'platillo' %}
+                Platillo: {{ chat_selected.platillo_nombre }}
+            {% else %}
+                Conversación General
+            {% endif %}
+        </strong>
+    </div>
+    
+    <div class="chat-box" id="chatBox">
+        {% for m in chat_selected.mensajes %}
+            {% if m.tipo == 'Cliente' %}
+                <!-- Mensaje del cliente a la izquierda -->
+                <div class="mensaje-card mensaje-cliente">
+                    <div class="mensaje-header">
+                        <i class="fas fa-user"></i>
+                        <strong>{{ chat_selected.cliente_nombre }}</strong>
+                    </div>
+                    <div class="mensaje-texto">
+                        {{ m.texto }}
+                    </div>
+                    <small class="mensaje-fecha">
+                        <i class="far fa-clock"></i> {{ m.fecha.strftime("%d %b %Y - %H:%M") if m.fecha else '' }}
+                    </small>
+                </div>
+            {% else %}
+                <!-- Mensaje del restaurante a la derecha -->
+                <div class="mensaje-card mensaje-restaurante">
+                    <div class="mensaje-header">
+                        <i class="fas fa-store"></i>
+                        <strong>Tú</strong>
+                        <i class="fas fa-check check-enviado"></i>
+                    </div>
+                    <div class="mensaje-texto">
+                        {{ m.texto }}
+                    </div>
+                    <small class="mensaje-fecha">
+                        <i class="far fa-clock"></i> {{ m.fecha.strftime("%d %b %Y - %H:%M") if m.fecha else '' }}
+                    </small>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    {% if chat_selected.tipo == 'platillo' %}
+        <form action="{{ url_for('responder_chat_platillo', chat_id=chat_selected.chat_id) }}" method="POST">
+            <textarea name="mensaje" rows="2" placeholder="Escribe tu respuesta sobre {{ chat_selected.platillo_nombre }}..." required></textarea>
+            <button type="submit">
+                <i class="fas fa-paper-plane"></i> Enviar respuesta
+            </button>
+        </form>
+    {% else %}
+        <form action="{{ url_for('responder_chat_general', chat_id=chat_selected.chat_id) }}" method="POST">
+            <textarea name="mensaje" rows="2" placeholder="Escribe tu respuesta..." required></textarea>
+            <button type="submit">
+                <i class="fas fa-paper-plane"></i> Enviar respuesta
+            </button>
+        </form>
+    {% endif %}
+{% else %}
+    <p>Selecciona una conversación en el panel izquierdo para ver el chat.</p>
+{% endif %}
+
+    </div>
+</div>
+
+<script>
+    // Toggle del menú hamburguesa
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const mainPanel = document.getElementById('mainPanel');
+
+    function toggleMenu() {
+        sidebar.classList.toggle('hidden');
+        mainPanel.classList.toggle('expanded');
+        menuToggle.classList.toggle('active');
+    }
+
+    menuToggle.addEventListener('click', toggleMenu);
+
+    // Cambiar entre pestañas
+    function switchTab(tab) {
+        // Actualizar botones
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        event.target.classList.add('active');
+
+        // Actualizar contenido
+        document.getElementById('tabChats').classList.remove('active');
+        document.getElementById('tabComentarios').classList.remove('active');
+        
+        if (tab === 'chats') {
+            document.getElementById('tabChats').classList.add('active');
+        } else {
+            document.getElementById('tabComentarios').classList.add('active');
+        }
+    }
+
+    function mostrarChat(clienteId) {
+        window.location.href = "{{ url_for('dashboard_restaurante') }}?cliente=" + clienteId;
+    }
+
+    // Auto-scroll al final del chat
+    const chatBox = document.getElementById("chatBox");
+    if(chatBox) {
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function mostrarChatPlatillo(chatId) {
+    window.location.href = "{{ url_for('dashboard_restaurante') }}?chat_id=" + chatId;
+}
+</script>
+
+</body>
+</html>

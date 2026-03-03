@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Publicidad y Ofertas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #fafafa;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn-volver {
+            background-color: #7a3e1d;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+        }
+        .formulario {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .grid-publicaciones {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .publicacion-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .publicacion-card.activa {
+            border: 2px solid #4CAF50;
+        }
+        .publicacion-card.inactiva {
+            opacity: 0.7;
+        }
+        .publicacion-img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+        .publicacion-info {
+            padding: 15px;
+        }
+        .publicacion-tipo {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            color: white;
+            font-size: 0.8rem;
+        }
+        .tipo-oferta { background: #f44336; }
+        .tipo-evento { background: #2196F3; }
+        .tipo-promocion { background: #FF9800; }
+        .descuento {
+            background: #4CAF50;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        .fechas {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+        .btn-desactivar {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-bullhorn"></i> Publicidad y Ofertas</h1>
+            <a href="{{ url_for('dashboard_restaurante') }}" class="btn-volver">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+
+        <div class="formulario">
+            <h2><i class="fas fa-plus-circle"></i> Crear Nueva Publicación</h2>
+            <form method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label>Título de la publicación</label>
+                    <input type="text" name="titulo" required placeholder="Ej: 2x1 en Pozole">
+                </div>
+                
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <textarea name="descripcion" rows="3" required placeholder="Describe la oferta o evento..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Tipo de publicación</label>
+                    <select name="tipo" required>
+                        <option value="oferta">Oferta especial</option>
+                        <option value="evento">Evento especial</option>
+                        <option value="promocion">Promoción por tiempo limitado</option>
+                    </select>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>Fecha de inicio</label>
+                        <input type="date" name="fecha_inicio">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha de fin</label>
+                        <input type="date" name="fecha_fin">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Descuento (opcional)</label>
+                    <input type="text" name="descuento" placeholder="Ej: 20% o 2x1">
+                </div>
+                
+                <div class="form-group">
+                    <label>Imagen de la publicación</label>
+                    <input type="file" name="imagen" accept="image/*">
+                </div>
+                
+                <button type="submit" style="background: #4CAF50; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer;">
+                    <i class="fas fa-save"></i> Publicar
+                </button>
+            </form>
+        </div>
+
+        <h2><i class="fas fa-history"></i> Mis Publicaciones</h2>
+        <div class="grid-publicaciones">
+            {% for pub in publicaciones %}
+            <div class="publicacion-card {% if pub.activa %}activa{% else %}inactiva{% endif %}">
+                {% if pub.imagen %}
+                <img src="{{ url_for('static', filename='uploads/publicidad/' + pub.imagen) }}" class="publicacion-img">
+                {% endif %}
+                <div class="publicacion-tipo tipo-{{ pub.tipo }}">
+                    {{ pub.tipo|upper }}
+                </div>
+                <div class="publicacion-info">
+                    <h3>{{ pub.titulo }}</h3>
+                    <p>{{ pub.descripcion }}</p>
+                    
+                    {% if pub.descuento %}
+                    <div class="descuento">
+                        <i class="fas fa-tag"></i> {{ pub.descuento }}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="fechas">
+                        {% if pub.fecha_inicio %}
+                        <div><i class="far fa-calendar-alt"></i> Inicio: {{ pub.fecha_inicio.strftime("%d/%m/%Y") }}</div>
+                        {% endif %}
+                        {% if pub.fecha_fin %}
+                        <div><i class="far fa-calendar-alt"></i> Fin: {{ pub.fecha_fin.strftime("%d/%m/%Y") }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div style="margin-top: 10px; color: #666;">
+                    <i class="fas fa-eye"></i> {{ pub.vistas or 0 }} vistas
+                    </div>
+                    
+                    {% if pub.activa %}
+                    <a href="{{ url_for('desactivar_publicidad', publicidad_id=pub._id) }}" class="btn-desactivar">
+                        <i class="fas fa-stop"></i> Desactivar
+                    </a>
+                    {% else %}
+                    <span style="color: #999; display: block; margin-top: 10px;">
+                        <i class="fas fa-pause-circle"></i> Inactiva
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

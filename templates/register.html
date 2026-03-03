@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de Cliente</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+
+<div class="chat-container">
+    <h1>Registro de Cliente</h1>
+    
+    <p style="text-align: center; color: #666; margin-bottom: 20px;">
+        <i class="fas fa-user"></i> Crea tu cuenta para disfrutar de la experiencia
+    </p>
+
+    <form method="POST">
+        <input type="text" name="nombre" placeholder="Nombre completo" required>
+
+        <input type="email" name="email" placeholder="Correo electrónico" required>
+
+        <input type="password" name="password" placeholder="Contraseña" required>
+
+        <button type="submit">
+            Registrarse como Cliente
+        </button>
+    </form>
+
+    <div class="footer">
+        ¿Ya tienes cuenta? <a href="/login">Inicia sesión</a>
+    </div>
+</div>
+
+</body>
+</html>

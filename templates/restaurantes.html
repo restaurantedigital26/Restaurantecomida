@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Restaurantes</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #fafafa;
+        }
+        
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* ===== TÍTULO CENTRADO ARRIBA ===== */
+        .header-titulo {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header-titulo h1 {
+            color: #7a3e1d;
+            font-size: 2.8rem;
+            margin: 0 0 10px;
+        }
+        
+        .header-titulo p {
+            color: #666;
+            font-size: 1.2rem;
+            margin: 0;
+        }
+        
+        /* ===== GRID DE RESTAURANTES (FORZADO HORIZONTAL) ===== */
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);  /* 4 columnas fijas */
+            gap: 20px;
+            margin: 40px 0;
+        }
+        
+        /* Responsive: menos columnas en pantallas pequeñas */
+        @media (max-width: 1000px) {
+            .cards-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        @media (max-width: 750px) {
+            .cards-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 500px) {
+            .cards-container {
+                grid-template-columns: 1fr;  /* 1 columna en móviles */
+            }
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            width: 100%;  /* Ocupa todo el ancho de su celda */
+        }
+        
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+        }
+        
+        .card-img {
+            width: 100%;
+            height: 160px;  /* Altura fija para todas las imágenes */
+            object-fit: cover;
+        }
+        
+        .card-img-placeholder {
+            width: 100%;
+            height: 160px;
+            background: linear-gradient(135deg, #7a3e1d, #4CAF50);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+        }
+        
+        .card-info {
+            padding: 15px;
+            flex: 1;
+        }
+        
+        .card h2 {
+            margin: 0 0 8px;
+            color: #333;
+            font-size: 1.2rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;  /* Si el nombre es muy largo, pone ... */
+        }
+        
+        .card p {
+            margin: 5px 0;
+            color: #666;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .card p i {
+            color: #4CAF50;
+            width: 16px;
+            font-size: 0.9rem;
+        }
+        
+        .card button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: background-color 0.3s;
+            margin-top: auto;
+        }
+        
+        .card button:hover {
+            background-color: #45a049;
+        }
+        
+        /* ===== BOTÓN VOLVER AL DASHBOARD (ABAJO) ===== */
+        .boton-volver-container {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .btn-volver-dashboard {
+            display: inline-block;
+            background-color: #7a3e1d;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: background-color 0.3s, transform 0.3s;
+            box-shadow: 0 4px 10px rgba(122, 62, 29, 0.3);
+        }
+        
+        .btn-volver-dashboard:hover {
+            background-color: #5e2f15;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(122, 62, 29, 0.4);
+        }
+        
+        .btn-volver-dashboard i {
+            margin-right: 8px;
+        }
+        
+        /* ===== FOOTER ===== */
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            color: #666;
+            border-top: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- TÍTULO CENTRADO ARRIBA -->
+        <div class="header-titulo">
+            <h1><i class="fas fa-utensils"></i> Restaurantes Disponibles</h1>
+            <p>Explora los restaurantes registrados en la plataforma</p>
+        </div>
+
+        <!-- CONTENEDOR DE RESTAURANTES (GRID HORIZONTAL FORZADO) -->
+        <div class="cards-container">
+            {% for r in restaurantes %}
+                <div class="card" onclick="window.location.href='{{ url_for('detalle_restaurante', id=r._id) }}'">
+                    {% if r.imagen_restaurante %}
+                        <img src="{{ url_for('static', filename='uploads/restaurantes/' + r.imagen_restaurante) }}" 
+                        alt="{{ r.nombre }}" class="card-img">
+                    {% else %}
+                        <div class="card-img-placeholder">
+                            <i class="fas fa-store"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="card-info">
+                        <h2>{{ r.get('nombre', 'Sin nombre') }}</h2>
+                        <p><i class="fas fa-map-marker-alt"></i> {{ r.direccion|truncate(25) or 'Ubicación' }}</p>
+                        <p><i class="fas fa-utensils"></i> {{ r.menu|length }} platillos</p>
+                        
+                        {% if r.promedio_general %}
+                        <p>
+                            <i class="fas fa-star" style="color: gold;"></i> 
+                            {{ r.promedio_general }} ({{ r.total_calificaciones or 0 }})
+                        </p>
+                        {% endif %}
+                    </div>
+                    <button>Ver más</button>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- BOTÓN VOLVER AL DASHBOARD (ABAJO) -->
+        <div class="boton-volver-container">
+            <a href="{{ url_for('dashboard_cliente') }}" class="btn-volver-dashboard">
+                <i class="fas fa-arrow-left"></i> Volver al Dashboard
+            </a>
+        </div>
+        
+        <!-- FOOTER -->
+        <div class="footer">
+            <p>© 2026 Sabores de Iguala - Todos los derechos reservados</p>
+        </div>
+    </div>
+</body>
+</html>

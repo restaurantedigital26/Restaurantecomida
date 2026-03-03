@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Sabores de Iguala</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body class="landing-body">
+    <header class="top-bar">
+    <h1>🍽 Comida Iguala</h1>
+
+    <div class="auth-buttons">
+        {% if user %}
+            <span>Hola, {{ user }}</span>
+            <a href="/dashboard-cliente" class="btn-secundario">Dashboard</a>
+            <a href="/logout" class="btn-secundario">Cerrar sesión</a>
+        {% else %}
+            <a href="/login" class="btn-secundario">Iniciar Sesión</a>
+            <a href="/register" class="btn-principal">Registrarse</a>
+        {% endif %}
+    </div>
+</header>
+
+    <!-- HERO -->
+    <section class="hero">
+            <div class="hero-content">
+        <h1 style="color: #FFD700; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">🌮 Sabores Tradicionales de Iguala</h1>
+            <p>
+                Descubre la riqueza gastronómica de Iguala de la Independencia, Guerrero.
+                Platillos tradicionales, lugares recomendados y opiniones reales,
+                todo en un solo lugar.
+            </p>
+            <a href="/chat-ui" class="btn-principal">
+                🍲 Consultar con la IA
+            </a>
+        </div>
+    </section>
+
+    <!-- SECCIÓN PLATILLOS -->
+    <section class="platillos">
+        <h2>Platillos Representativos</h2>
+
+        <div class="grid-platillos">
+            <div class="card">
+                <h3>Pozole</h3>
+                <p>Blanco y verde, tradición de los jueves en Iguala.</p>
+            </div>
+
+            <div class="card">
+                <h3>Cochinita</h3>
+                <p>Estilo Iguala, con especias regionales únicas.</p>
+            </div>
+
+            <div class="card">
+                <h3>Tamales de Nejo</h3>
+                <p>Masa oscura, rellenos tradicionales y sabor intenso.</p>
+            </div>
+
+            <div class="card">
+                <h3>Barbacoa</h3>
+                <p>Ideal para los fines de semana, suave y jugosa.</p>
+            </div>
+
+            <div class="card">
+                <h3>Tacos de bote</h3>
+                <p>Especialidad Guerrerense, usando carne de cerdo y cocinada a trompo.</p>
+            </div>
+
+            <div class="card">
+                <h3>Elopozole</h3>
+                <p>Caldo espeso de maíz tierno, típico de Guerrero.</p>
+            </div>
+        </div>
+
+    </section>
+
+    <section class="cta">
+        <h2>¿Buscas dónde comer?</h2>
+        <p>
+            Pregunta a nuestra Inteligencia Artificial y obtén
+            recomendaciones reales con calificaciones y reseñas.
+        </p>
+        <a href="/chat-ui" class="btn-secundario">
+            Ir al Chat Gastronómico 🤖
+        </a>
+    </section>
+    <!-- SECCIÓN DE RESTAURANTES PÚBLICOS -->
+<section class="restaurantes-publicos" style="padding: 60px 20px; background: #fff;">
+    <h2 style="text-align: center; color: #7a3e1d; margin-bottom: 40px;">
+        <i class="fas fa-store"></i> Restaurantes Disponibles
+    </h2>
+    
+    <div style="max-width: 1200px; margin: 0 auto;">
+        <div style="display: flex; justify-content: center; margin-bottom: 30px;">
+            <a href="{{ url_for('ver_restaurantes_publico') }}" style="background-color: #4CAF50; color: white; padding: 15px 40px; border-radius: 30px; text-decoration: none; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                <i class="fas fa-utensils"></i> Ver Todos los Restaurantes
+            </a>
+        </div>
+        
+        <p style="text-align: center; color: #666;">
+            <i class="fas fa-info-circle"></i> Puedes ver los restaurantes sin necesidad de registrarte.
+            Para comentar y calificar, inicia sesión.
+        </p>
+    </div>
+</section>
+
+    <footer class="landing-footer">
+        <p>Gastronomía Tradicional de Iguala</p>
+        <p>Contacta al soporte por si te interesa promocionarte</p>
+        <p>Telefono Soporte: 770-127-7979</p>
+    </footer>
+
+</body>
+</html>

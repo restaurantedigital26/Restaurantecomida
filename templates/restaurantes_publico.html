@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Restaurantes - Sabores de Iguala</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #fafafa;
+        }
+        
+        /* ===== TÍTULO PRINCIPAL ===== */
+        .page-title {
+            text-align: center;
+            margin: 40px 0 20px;
+        }
+        
+        .page-title h1 {
+            color: #7a3e1d;
+            font-size: 2.5rem;
+            margin: 0 0 10px;
+        }
+        
+        .page-title p {
+            color: #666;
+            font-size: 1.2rem;
+            margin: 0;
+        }
+        
+        .btn-volver {
+            display: inline-block;
+            margin-top: 15px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-volver:hover {
+            background-color: #45a049;
+        }
+
+        /* ===== CONTENEDOR PRINCIPAL ===== */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px 40px;
+        }
+
+        /* ===== SCROLL HORIZONTAL DE RESTAURANTES ===== */
+        .restaurantes-scroll-container {
+            width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            white-space: nowrap;
+            padding: 15px 0 25px;
+            margin: 20px 0 40px;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .restaurantes-scroll-container::-webkit-scrollbar {
+            height: 10px;
+        }
+        
+        .restaurantes-scroll-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .restaurantes-scroll-container::-webkit-scrollbar-thumb {
+            background: #4CAF50;
+            border-radius: 10px;
+        }
+        
+        .restaurantes-scroll {
+            display: inline-flex;
+            gap: 25px;
+            flex-wrap: nowrap;
+            padding: 5px;
+        }
+        
+        /* ===== TARJETAS DE RESTAURANTES CON IMAGEN ===== */
+        .card-scroll {
+            width: 260px;
+            min-width: 260px;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            border: 1px solid #eee;
+            white-space: normal;
+        }
+        
+        .card-scroll:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+            border-color: #4CAF50;
+        }
+        
+        /* ===== NUEVO: Estilos para la imagen ===== */
+        .card-img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .card-img-placeholder {
+            width: 100%;
+            height: 150px;
+            background: linear-gradient(135deg, #7a3e1d, #4CAF50);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+        }
+        
+        .card-info {
+            padding: 15px;
+        }
+        
+        .card-info h3 {
+            margin: 0 0 8px;
+            color: #333;
+            font-size: 1.2rem;
+        }
+        
+        .card-info p {
+            margin: 5px 0;
+            color: #666;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .card-info p i {
+            color: #4CAF50;
+            width: 16px;
+        }
+        
+        .rating-mini {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin: 8px 0;
+            padding: 5px 0;
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .rating-mini i {
+            color: gold;
+            font-size: 0.9rem;
+        }
+        
+        .rating-mini span {
+            color: #333;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .badge-promo {
+            background: #FF9800;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            display: inline-block;
+            margin-top: 5px;
+        }
+        
+        .btn-ver-mini {
+            background-color: #4CAF50;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-ver-mini:hover {
+            background-color: #45a049;
+        }
+        
+        /* ===== CONTROLES DE SCROLL ===== */
+        .scroll-controls {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .scroll-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: background-color 0.3s;
+        }
+        
+        .scroll-btn:hover {
+            background-color: #45a049;
+        }
+        
+        .scroll-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* ===== SECCIÓN DE LOGIN ===== */
+        .login-section {
+            max-width: 260px;
+            margin: 20px auto 40px;
+            padding: 25px 20px;
+            background: linear-gradient(135deg, #f9f4ec, #fff);
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .login-section i {
+            font-size: 2.5rem;
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+        
+        .login-section h3 {
+            color: #7a3e1d;
+            font-size: 1.2rem;
+            margin: 0 0 8px;
+        }
+        
+        .login-section p {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+        
+        .login-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .btn-login {
+            background: #4CAF50;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .btn-login:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        
+        .btn-register {
+            background: #7a3e1d;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .btn-register:hover {
+            background: #5e2f15;
+            transform: translateY(-2px);
+        }
+        
+        /* ===== FOOTER ===== */
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #666;
+            border-top: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- TÍTULO PRINCIPAL SIMPLE -->
+        <div class="page-title">
+            <h1><i class="fas fa-store"></i> Restaurantes en Iguala</h1>
+            <p>Descubre los mejores lugares para comer en nuestra ciudad</p>
+            <a href="{{ url_for('landing') }}" class="btn-volver">
+                <i class="fas fa-home"></i> Volver al Inicio
+            </a>
+        </div>
+
+        <!-- CONTROLES DE SCROLL -->
+        <div class="scroll-controls">
+            <button class="scroll-btn" onclick="scrollRestaurantes('left')" id="scrollLeftBtn">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="scroll-btn" onclick="scrollRestaurantes('right')" id="scrollRightBtn">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+
+        <!-- SCROLL HORIZONTAL DE RESTAURANTES CON IMÁGENES -->
+        <div class="restaurantes-scroll-container" id="restaurantesScroll">
+            <div class="restaurantes-scroll">
+                {% for r in restaurantes %}
+                <div class="card-scroll" onclick="window.location.href='{{ url_for('detalle_restaurante_publico', id=r._id) }}'">
+                    <!-- ===== NUEVO: Mostrar imagen del restaurante si existe ===== -->
+                    {% if r.imagen_restaurante %}
+                        <img src="{{ url_for('static', filename='uploads/restaurantes/' + r.imagen_restaurante) }}" 
+                        alt="{{ r.nombre }}" class="card-img">
+                    {% else %}
+                        <div class="card-img-placeholder">
+                            <i class="fas fa-store"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="card-info">
+                        <h3>{{ r.nombre }}</h3>
+                        <p><i class="fas fa-map-marker-alt"></i> {{ r.direccion|truncate(25) or 'Ubicación no disponible' }}</p>
+                        
+                        <div class="rating-mini">
+                            <i class="fas fa-star"></i>
+                            <span>{{ r.promedio_general|round(1) if r.promedio_general else 'Nuevo' }}</span>
+                            <span>({{ r.total_calificaciones or 0 }})</span>
+                        </div>
+                        
+                        <p><i class="fas fa-utensils"></i> {{ r.menu|length }} platillos</p>
+                        
+                        {% if r.publicidad_activa and r.publicidad_activa|length > 0 %}
+                        <span class="badge-promo">
+                            <i class="fas fa-tag"></i> {{ r.publicidad_activa|length }} ofertas
+                        </span>
+                        {% endif %}
+                        
+                        <button class="btn-ver-mini">
+                            <i class="fas fa-eye"></i> Ver más
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- SECCIÓN DE LOGIN -->
+        <div class="login-section">
+            <i class="fas fa-lock"></i>
+            <h3>¿Quieres calificar y comentar?</h3>
+            <p>Inicia sesión para compartir tu opinión</p>
+            
+            <div class="login-buttons">
+                <a href="{{ url_for('login') }}" class="btn-login">
+                    <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                </a>
+                <a href="{{ url_for('register') }}" class="btn-register">
+                    <i class="fas fa-user-plus"></i> Registrarse
+                </a>
+            </div>
+        </div>
+        
+        <!-- FOOTER -->
+        <div class="footer">
+            <p>© 2026 Sabores de Iguala - Todos los derechos reservados</p>
+        </div>
+    </div>
+
+    <script>
+        function scrollRestaurantes(direction) {
+            const container = document.getElementById('restaurantesScroll');
+            const scrollAmount = 300;
+            
+            if (direction === 'left') {
+                container.scrollLeft -= scrollAmount;
+            } else {
+                container.scrollLeft += scrollAmount;
+            }
+            
+            setTimeout(() => {
+                document.getElementById('scrollLeftBtn').disabled = container.scrollLeft <= 0;
+                document.getElementById('scrollRightBtn').disabled = 
+                    container.scrollLeft >= container.scrollWidth - container.clientWidth;
+            }, 100);
+        }
+        
+        window.addEventListener('load', function() {
+            const container = document.getElementById('restaurantesScroll');
+            if (container) {
+                setTimeout(() => {
+                    document.getElementById('scrollLeftBtn').disabled = container.scrollLeft <= 0;
+                    document.getElementById('scrollRightBtn').disabled = 
+                        container.scrollLeft >= container.scrollWidth - container.clientWidth;
+                }, 100);
+            }
+        });
+    </script>
+</body>
+</html>

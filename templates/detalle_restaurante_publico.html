@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ restaurante.nombre }} - Vista Pública</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #fafafa;
+        }
+        
+        .detalle-restaurante {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* HEADER DEL RESTAURANTE */
+        .restaurante-header {
+            background: linear-gradient(135deg, #7a3e1d, #4CAF50);
+            color: white;
+            padding: 30px 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .restaurante-header h1 {
+            margin: 0 0 8px;
+            font-size: 2rem;
+        }
+        
+        .restaurante-header p {
+            margin: 0;
+            font-size: 1rem;
+        }
+        
+        .btn-volver {
+            display: inline-block;
+            margin-top: 15px;
+            background-color: white;
+            color: #7a3e1d;
+            padding: 8px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        /* INFO RESTAURANTE */
+        .info-restaurante {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            font-size: 0.95rem;
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .info-item i {
+            color: #4CAF50;
+            width: 20px;
+        }
+        
+        /* CALIFICACIONES */
+        .rating-container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+        
+        .rating-summary {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .rating-big {
+            text-align: center;
+        }
+        
+        .rating-big .number {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        
+        .rating-stars i {
+            color: gold;
+            font-size: 1rem;
+        }
+        
+        /* PUBLICIDAD */
+        .publicidad-card {
+            background: #fff3e0;
+            border-left: 4px solid #FF9800;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+        
+        .publicidad-tipo {
+            background: #FF9800;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+        
+        .publicidad-titulo {
+            font-size: 1.1rem;
+            margin: 5px 0;
+        }
+        
+        .publicidad-descuento {
+            background: #4CAF50;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 15px;
+            display: inline-block;
+            font-size: 0.9rem;
+        }
+        
+        /* MENÚ */
+        .menu-titulo {
+            margin: 25px 0 15px;
+            color: #7a3e1d;
+            font-size: 1.3rem;
+        }
+        
+        .menu-scroll-container {
+            width: 100%;
+            overflow-x: auto;
+            white-space: nowrap;
+            padding: 10px 0;
+            margin-bottom: 25px;
+        }
+        
+        .menu-scroll {
+            display: inline-flex;
+            gap: 15px;
+        }
+        
+        .platillo-card {
+            width: 200px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-size: 0.9rem;
+        }
+        
+        .platillo-card img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+        }
+        
+        .platillo-info {
+            padding: 12px;
+        }
+        
+        .platillo-info h3 {
+            margin: 0 0 5px;
+            font-size: 1rem;
+        }
+        
+        .platillo-precio {
+            font-weight: bold;
+            color: #4CAF50;
+            margin-top: 5px;
+        }
+        
+        /* COMENTARIOS */
+        .comentarios-section {
+            margin: 30px 0;
+        }
+        
+        .comentario-item {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            font-size: 0.95rem;
+        }
+        
+        .comentario-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            color: #666;
+            font-size: 0.85rem;
+        }
+        
+        .comentario-nombre {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        
+        /* ===== SECCIÓN DE LOGIN MEJORADA PERO COMPACTA ===== */
+        .login-prompt-compacto {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            padding: 25px 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 30px 0 20px;
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+        
+        .login-prompt-compacto i {
+            font-size: 2.2rem;
+            color: white;
+            margin-bottom: 8px;
+            background: rgba(255,255,255,0.15);
+            padding: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .login-prompt-compacto h3 {
+            color: white;
+            font-size: 1.3rem;
+            margin: 0 0 5px;
+        }
+        
+        .login-prompt-compacto p {
+            color: white;
+            font-size: 0.95rem;
+            margin: 0 0 15px;
+            opacity: 0.9;
+        }
+        
+        .login-buttons-compactos {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn-login-compacto {
+            background: white;
+            color: #4CAF50;
+            padding: 8px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: transform 0.2s;
+            border: 1px solid white;
+        }
+        
+        .btn-login-compacto:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+        
+        .btn-register-compacto {
+            background: transparent;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: transform 0.2s;
+            border: 1px solid white;
+        }
+        
+        .btn-register-compacto:hover {
+            transform: translateY(-2px);
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 15px;
+            color: #666;
+            font-size: 0.9rem;
+            border-top: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="detalle-restaurante">
+        <!-- HEADER DEL RESTAURANTE -->
+        <div class="restaurante-header">
+            <h1><i class="fas fa-store"></i> {{ restaurante.nombre }}</h1>
+            <p>{{ restaurante.descripcion or "Restaurante en Iguala" }}</p>
+            <a href="{{ url_for('ver_restaurantes_publico') }}" class="btn-volver">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+
+        <!-- INFORMACIÓN DEL RESTAURANTE -->
+        <div class="info-restaurante">
+            <div class="info-item">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>{{ restaurante.direccion or 'Dirección no disponible' }}</span>
+            </div>
+            <div class="info-item">
+                <i class="fas fa-phone"></i>
+                <span>{{ restaurante.telefono or 'Teléfono no disponible' }}</span>
+            </div>
+            {% if restaurante.redes_sociales %}
+            <div class="info-item">
+                <i class="fas fa-globe"></i>
+                <span>
+                    {% if restaurante.redes_sociales is mapping %}
+                        {% for tipo, url in restaurante.redes_sociales.items() %}
+                            <a href="{{ url if url.startswith('http') else 'https://' + url }}" target="_blank">
+                                <i class="fab fa-{{ tipo }}"></i>
+                            </a>
+                        {% endfor %}
+                    {% else %}
+                        <a href="{{ restaurante.redes_sociales if restaurante.redes_sociales.startswith('http') else 'https://' + restaurante.redes_sociales }}" target="_blank">
+                            Link
+                        </a>
+                    {% endif %}
+                </span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- CALIFICACIONES -->
+        <div class="rating-container">
+            <h2 style="margin-top: 0;">⭐ Calificaciones</h2>
+            <div class="rating-summary">
+                <div class="rating-big">
+                    {% set promedio = restaurante.promedio_general|float if restaurante.promedio_general is defined and restaurante.promedio_general else 0 %}
+                    <div class="number">{{ "%.1f"|format(promedio) }}</div>
+                    <div class="rating-stars">
+                        {% for i in range(1, 6) %}
+                            {% if i <= promedio|int %}
+                                <i class="fas fa-star"></i>
+                            {% elif i - 0.5 <= promedio %}
+                                <i class="fas fa-star-half-alt"></i>
+                            {% else %}
+                                <i class="far fa-star"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div style="font-size: 0.85rem;">({{ restaurante.total_calificaciones or 0 }} calif)</div>
+                </div>
+                <div>
+                    {% set comida = restaurante.promedio_comida|float if restaurante.promedio_comida is defined and restaurante.promedio_comida else 0 %}
+                    {% set servicio = restaurante.promedio_servicio|float if restaurante.promedio_servicio is defined and restaurante.promedio_servicio else 0 %}
+                    <p><strong>Comida:</strong> {{ "%.1f"|format(comida) }}</p>
+                    <p><strong>Servicio:</strong> {{ "%.1f"|format(servicio) }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- PUBLICIDAD -->
+        {% if restaurante.publicidad_activa and restaurante.publicidad_activa|length > 0 %}
+            {% for pub in restaurante.publicidad_activa %}
+            <div class="publicidad-card">
+                <span class="publicidad-tipo">{{ pub.tipo|upper }}</span>
+                <h3 class="publicidad-titulo">{{ pub.titulo }}</h3>
+                <p>{{ pub.descripcion }}</p>
+                {% if pub.descuento %}
+                <div class="publicidad-descuento">
+                    <i class="fas fa-tag"></i> {{ pub.descuento }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- MENÚ -->
+        <h2 class="menu-titulo"><i class="fas fa-utensils"></i> Menú</h2>
+        {% if restaurante.menu %}
+            <div class="menu-scroll-container">
+                <div class="menu-scroll">
+                    {% for platillo in restaurante.menu %}
+                    <div class="platillo-card">
+                        {% if platillo.foto %}
+                        <img src="{{ url_for('static', filename='uploads/' + platillo.foto) }}" alt="{{ platillo.nombre }}">
+                        {% endif %}
+                        <div class="platillo-info">
+                            <h3>{{ platillo.nombre }}</h3>
+                            <p>{{ platillo.descripcion[:60] }}{% if platillo.descripcion and platillo.descripcion|length > 60 %}...{% endif %}</p>
+                            <p class="platillo-precio">${{ platillo.precio }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% else %}
+            <p>Sin platillos</p>
+        {% endif %}
+
+        <!-- COMENTARIOS -->
+        <div class="comentarios-section">
+            <h2><i class="fas fa-comments"></i> Comentarios</h2>
+            {% if comentarios %}
+                {% for c in comentarios[:5] %}
+                <div class="comentario-item">
+                    <div class="comentario-header">
+                        <span class="comentario-nombre">{{ c.cliente_nombre }}</span>
+                        <span>{{ c.fecha.strftime("%d/%m/%Y") if c.fecha else '' }}</span>
+                    </div>
+                    <p>{{ c.comentario }}</p>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p style="color: #666;">No hay comentarios</p>
+            {% endif %}
+        </div>
+
+        <!-- SECCIÓN DE LOGIN COMPACTA -->
+        <div class="login-prompt-compacto">
+            <i class="fas fa-lock"></i>
+            <h3>¿Quieres calificar?</h3>
+            <p>Inicia sesión para compartir tu opinión</p>
+            
+            <div class="login-buttons-compactos">
+                <a href="{{ url_for('login') }}" class="btn-login-compacto">
+                    <i class="fas fa-sign-in-alt"></i> Entrar
+                </a>
+                <a href="{{ url_for('register') }}" class="btn-register-compacto">
+                    <i class="fas fa-user-plus"></i> Registrarse
+                </a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>© 2024 Sabores de Iguala</p>
+        </div>
+    </div>
+</body>
+</html>

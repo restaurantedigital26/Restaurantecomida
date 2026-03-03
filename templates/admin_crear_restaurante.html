@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Crear Restaurante</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .admin-container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .admin-header h1 {
+            color: #7a3e1d;
+            margin: 0;
+        }
+        .btn-volver {
+            background-color: #666;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+        }
+        .btn-volver:hover {
+            background-color: #555;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: bold;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+        }
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        .redes-sociales-container {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .red-social-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        .red-social-item select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 120px;
+        }
+        .red-social-item input {
+            flex: 1;
+        }
+        .btn-remove {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+        .btn-remove:hover {
+            background-color: #d32f2f;
+        }
+        .btn-add {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 15px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn-add:hover {
+            background-color: #45a049;
+        }
+        .btn-crear {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1rem;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .btn-crear:hover {
+            background-color: #45a049;
+        }
+        .info-text {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1><i class="fas fa-store"></i> Crear Restaurante</h1>
+            <a href="{{ url_for('dashboard_admin') }}" class="btn-volver">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label><i class="fas fa-store"></i> Nombre del Restaurante</label>
+                <input type="text" name="nombre" required placeholder="Ej: Taquería El Pozole">
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-envelope"></i> Correo Electrónico</label>
+                <input type="email" name="email" required placeholder="correo@restaurante.com">
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-lock"></i> Contraseña</label>
+                <input type="password" name="password" required placeholder="Contraseña de acceso">
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-phone"></i> Teléfono</label>
+                <input type="text" name="telefono" placeholder="Ej: 7331234567">
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-map-marker-alt"></i> Dirección</label>
+                <input type="text" name="direccion" id="direccion" placeholder="Dirección completa">
+            </div>
+
+            <!-- SECCIÓN DE MAPA CORREGIDA -->
+            <div class="form-group">
+                <label><i class="fas fa-map-marked-alt"></i> Ubicación en el mapa</label>
+                <div class="info-text">Verifica que la ubicación sea correcta arrastrando el marcador</div>
+                
+                <div style="margin-bottom: 15px;">
+                    <button type="button" class="btn-primary" onclick="obtenerCoordenadas()" style="background-color: #2196F3;">
+                        <i class="fas fa-map-pin"></i> Obtener coordenadas de la dirección
+                    </button>
+                </div>
+                
+                <div id="mapa-creacion" style="height: 300px; width: 100%; border-radius: 5px; margin-bottom: 10px;"></div>
+                
+                <div style="display: flex; gap: 10px;">
+                    <div style="flex: 1;">
+                        <input type="text" name="latitud" id="latitud" placeholder="Latitud" readonly style="background-color: #f5f5f5;">
+                    </div>
+                    <div style="flex: 1;">
+                        <input type="text" name="longitud" id="longitud" placeholder="Longitud" readonly style="background-color: #f5f5f5;">
+                    </div>
+                </div>
+                <small style="color: #666;">
+                    <i class="fas fa-info-circle"></i> Puedes arrastrar el marcador para ajustar la ubicación exacta
+                </small>
+            </div>
+
+            <!-- Scripts del mapa - MOVIDOS AQUÍ -->
+            <script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_key }}&callback=initMap" async defer></script>
+            
+            <script>
+                let map;
+                let marker;
+
+                function initMap() {
+                    // Ubicación por defecto (centro de Iguala)
+                    const defaultLocation = { lat: 18.3445, lng: -99.5403 };
+                    
+                    map = new google.maps.Map(document.getElementById('mapa-creacion'), {
+                        zoom: 13,
+                        center: defaultLocation
+                    });
+                    
+                    marker = new google.maps.Marker({
+                        position: defaultLocation,
+                        map: map,
+                        draggable: true,
+                        title: 'Arrástrame a la ubicación'
+                    });
+                    
+                    marker.addListener('dragend', function() {
+                        const pos = marker.getPosition();
+                        document.getElementById('latitud').value = pos.lat();
+                        document.getElementById('longitud').value = pos.lng();
+                    });
+                    
+                    map.addListener('click', function(event) {
+                        marker.setPosition(event.latLng);
+                        document.getElementById('latitud').value = event.latLng.lat();
+                        document.getElementById('longitud').value = event.latLng.lng();
+                    });
+                }
+
+                function obtenerCoordenadas() {
+                    const direccion = document.getElementById('direccion').value;
+                    
+                    if (!direccion) {
+                        alert('Por favor ingresa primero la dirección');
+                        return;
+                    }
+                    
+                    // Mostrar indicador de carga
+                    const btn = event.target;
+                    const textoOriginal = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Obteniendo coordenadas...';
+                    btn.disabled = true;
+                    
+                    // Usar la API de Geocoding de Google
+                    fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(direccion)}&key={{ google_maps_key }}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.results && data.results[0]) {
+                                const location = data.results[0].geometry.location;
+                                document.getElementById('latitud').value = location.lat;
+                                document.getElementById('longitud').value = location.lng;
+                                
+                                // Actualizar mapa
+                                if (marker) {
+                                    marker.setPosition(location);
+                                    map.setCenter(location);
+                                }
+                                
+                                alert('✅ Coordenadas obtenidas correctamente');
+                            } else {
+                                alert('❌ No se pudo obtener la ubicación de esa dirección. Verifica que sea correcta.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('❌ Error al obtener coordenadas');
+                        })
+                        .finally(() => {
+                            btn.innerHTML = textoOriginal;
+                            btn.disabled = false;
+                        });
+                }
+            </script>
+
+            <div class="form-group">
+                <label><i class="fas fa-globe"></i> Sitio Web</label>
+                <input type="url" name="sitio_web" placeholder="https://www.ejemplo.com">
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-share-alt"></i> Redes Sociales</label>
+                <div class="info-text">Agrega los enlaces a las redes sociales del restaurante</div>
+                <div id="redesSocialesContainer" class="redes-sociales-container">
+                    <!-- Las redes sociales se agregarán aquí dinámicamente -->
+                </div>
+                <button type="button" class="btn-add" onclick="agregarRedSocial()">
+                    <i class="fas fa-plus"></i> Agregar Red Social
+                </button>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-info-circle"></i> Descripción</label>
+                <textarea name="descripcion" placeholder="Describe el restaurante, su especialidad, horarios, etc."></textarea>
+            </div>
+            
+            <!-- IMAGEN DEL RESTAURANTE -->
+<div class="form-group">
+    <label><i class="fas fa-image"></i> Imagen del Restaurante</label>
+    <div class="info-text">Sube una imagen principal para mostrar en la lista de restaurantes</div>
+    <input type="file" name="imagen_restaurante" accept="image/*" onchange="previewImagen(this)">
+    <div id="preview-container" style="margin-top: 10px; display: none;">
+        <img id="imagen-preview" style="max-width: 200px; max-height: 150px; border-radius: 8px; border: 1px solid #ddd;">
+    </div>
+</div>
+
+<script>
+function previewImagen(input) {
+    const preview = document.getElementById('preview-container');
+    const img = document.getElementById('imagen-preview');
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            img.src = e.target.result;
+            preview.style.display = 'block';
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+    } else {
+        preview.style.display = 'none';
+    }
+}
+</script>
+
+            <button type="submit" class="btn-crear">
+                <i class="fas fa-plus-circle"></i> Crear Restaurante
+            </button>
+        </form>
+    </div>
+
+    <script>
+        let redSocialCount = 0;
+
+        function agregarRedSocial() {
+            const container = document.getElementById('redesSocialesContainer');
+            const item = document.createElement('div');
+            item.className = 'red-social-item';
+            item.id = `red-social-${redSocialCount}`;
+            
+            item.innerHTML = `
+                <select name="red_social_tipo_${redSocialCount}">
+                    <option value="facebook">Facebook</option>
+                    <option value="instagram">Instagram</option>
+                    <option value="twitter">Twitter/X</option>
+                    <option value="tiktok">TikTok</option>
+                    <option value="youtube">YouTube</option>
+                    <option value="whatsapp">WhatsApp</option>
+                </select>
+                <input type="url" name="red_social_url_${redSocialCount}" placeholder="URL de la red social (ej: facebook.com/tupagina)">
+                <button type="button" class="btn-remove" onclick="eliminarRedSocial(${redSocialCount})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+            
+            container.appendChild(item);
+            redSocialCount++;
+        }
+
+        function eliminarRedSocial(id) {
+            const item = document.getElementById(`red-social-${id}`);
+            if (item) {
+                item.remove();
+            }
+        }
+    </script>
+</body>
+</html>

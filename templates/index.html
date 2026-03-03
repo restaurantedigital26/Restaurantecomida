@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Asistente Gastronómico - Iguala</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 900px;
+            height: 90vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Header */
+        .chat-header {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .chat-header-icon {
+            width: 45px;
+            height: 45px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .chat-header-info h1 {
+            font-size: 1.2rem;
+            margin-bottom: 3px;
+        }
+
+        .chat-header-info p {
+            font-size: 0.75rem;
+            opacity: 0.9;
+        }
+
+        .chat-header-status {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.15);
+            padding: 6px 12px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #4ade80;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* Mensajes - Ocupa más espacio */
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8fafc;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 15px;
+            position: relative;
+            word-wrap: break-word;
+            line-height: 1.4;
+            font-size: 0.95rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.bot .message-content {
+            background: white;
+            color: #1e293b;
+            border-bottom-left-radius: 4px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .message-time {
+            font-size: 0.65rem;
+            margin-top: 3px;
+            opacity: 0.7;
+            display: block;
+        }
+
+        .message.user .message-time {
+            text-align: right;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .message.bot .message-time {
+            color: #64748b;
+        }
+
+        /* Mensaje de bienvenida compacto */
+        .welcome-message {
+            background: linear-gradient(135deg, #f8fafc, #ffffff);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .welcome-message h3 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+        }
+
+        .suggestions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 8px;
+        }
+
+        .suggestion-chip {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #4a5568;
+        }
+
+        .suggestion-chip:hover {
+            background: #4CAF50;
+            border-color: #4CAF50;
+            color: white;
+        }
+
+        /* ===== MAPA MÁS COMPACTO ===== */
+        .map-container {
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            padding: 10px 15px;
+            transition: all 0.3s ease;
+        }
+
+        .map-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .map-title {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #2d3748;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .map-title i {
+            color: #4CAF50;
+        }
+
+        .map-toggle {
+            background: none;
+            border: none;
+            color: #4CAF50;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 5px;
+            transition: transform 0.3s;
+        }
+
+        .map-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        #map {
+            height: 0;
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            transition: height 0.3s ease;
+            overflow: hidden;
+        }
+
+        #map.visible {
+            height: 150px;  /* Mapa más pequeño */
+        }
+
+        /* Input area */
+        .chat-input-area {
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            padding: 12px 15px;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 8px;
+            background: #f8fafc;
+            border-radius: 25px;
+            padding: 3px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .input-wrapper input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 10px 15px;
+            outline: none;
+            font-size: 0.9rem;
+            color: #1e293b;
+        }
+
+        .input-wrapper button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 8px 20px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .input-wrapper button:hover {
+            background: #45a049;
+        }
+
+        /* Footer compacto */
+        .chat-footer {
+            padding: 8px 15px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            font-size: 0.7rem;
+            color: #64748b;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Scrollbar personalizada */
+        .chat-messages::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 2px;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            
+            .message-content {
+                max-width: 85%;
+                font-size: 0.9rem;
+            }
+            
+            .chat-header-info h1 {
+                font-size: 1rem;
+            }
+            
+            .chat-header-status span {
+                display: none;
+            }
+            
+            .suggestions-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            #map.visible {
+                height: 120px;
+            }
+        }
+    </style>
+    <!-- Google Maps -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBuXRHINWlyAo2sH8HrnLmg3d09kiFBicU"></script>
+</head>
+<body>
+
+<div class="chat-container">
+    <!-- Header compacto -->
+    <div class="chat-header">
+        <div class="chat-header-icon">
+            <i class="fas fa-utensils"></i>
+        </div>
+        <div class="chat-header-info">
+            <h1>Asistente Gastronómico</h1>
+            <p>Sabores de Iguala</p>
+        </div>
+        <div class="chat-header-status">
+            <span class="status-dot"></span>
+            <span>24/7</span>
+        </div>
+    </div>
+
+    <!-- Messages (más espacio) -->
+    <div class="chat-messages" id="chatMessages">
+        <!-- Mensaje de bienvenida compacto -->
+        <div class="welcome-message">
+            <h3>
+                <i class="fas fa-robot" style="color: #4CAF50;"></i>
+                ¡Hola! ¿Qué te gustaría saber?
+            </h3>
+            <div class="suggestions-grid">
+                <div class="suggestion-chip" onclick="sendQuickQuestion('¿Dónde hay buen pozole?')">
+                    <i class="fas fa-utensils"></i> Pozole
+                </div>
+                <div class="suggestion-chip" onclick="sendQuickQuestion('Recomiéndame cochinita')">
+                    <i class="fas fa-drumstick-bite"></i> Cochinita
+                </div>
+                <div class="suggestion-chip" onclick="sendQuickQuestion('Tamales de nejo')">
+                    <i class="fas fa-corn"></i> Tamales
+                </div>
+                <div class="suggestion-chip" onclick="sendQuickQuestion('Restaurantes')">
+                    <i class="fas fa-store"></i> Ver todos
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mapa compacto y colapsable -->
+    <div class="map-container" id="mapContainer">
+        <div class="map-header">
+            <div class="map-title">
+                <i class="fas fa-map-marked-alt"></i>
+                <span>Ubicaciones encontradas</span>
+            </div>
+            <button class="map-toggle" onclick="toggleMap()" id="mapToggle">
+                <i class="fas fa-chevron-up"></i>
+            </button>
+        </div>
+        <div id="map"></div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="chat-input-area">
+        <div class="input-wrapper">
+            <input type="text" id="messageInput" placeholder="Escribe tu pregunta..." onkeypress="handleKeyPress(event)">
+            <button onclick="sendMessage()">
+                <i class="fas fa-paper-plane"></i>
+                <span>Enviar</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer compacto -->
+    <div class="chat-footer">
+        <span><i class="far fa-clock"></i> 24/7</span>
+        <span>🍽️ Iguala</span>
+    </div>
+</div>
+
+<script>
+    let map;
+    let markers = [];
+    let currentInfoWindow = null;
+    let mapVisible = false;
+
+    // ===== NUEVA FUNCIÓN INITMAP AGREGADA =====
+    function initMap() {
+        fetch("/mapa")
+            .then(res => res.json())
+            .then(data => {
+                const mapContainer = document.getElementById("mapContainer");
+                const mapElement = document.getElementById("map");
+                
+                if (data.length === 0) {
+                    mapContainer.style.display = "none";
+                    return;
+                }
+
+                mapContainer.style.display = "block";
+
+                // Crear mapa
+                map = new google.maps.Map(mapElement, {
+                    zoom: 14,
+                    center: { lat: data[0].ubicacion.lat, lng: data[0].ubicacion.lng },
+                    mapTypeControl: false,
+                    streetViewControl: false
+                });
+
+                // Agregar marcadores
+                data.forEach(lugar => {
+                    let iconUrl = lugar.tipo === 'restaurante_registrado' 
+                        ? "http://maps.google.com/mapfiles/ms/icons/blue-dot.png" 
+                        : "http://maps.google.com/mapfiles/ms/icons/green-dot.png";
+                    
+                    const marker = new google.maps.Marker({
+                        position: { lat: lugar.ubicacion.lat, lng: lugar.ubicacion.lng },
+                        map: map,
+                        title: lugar.nombre,
+                        icon: { url: iconUrl, scaledSize: new google.maps.Size(32, 32) }
+                    });
+                    
+                    markers.push(marker);
+                });
+            })
+            .catch(err => {
+                console.error("❌ Error cargando mapa:", err);
+                document.getElementById("mapContainer").style.display = "none";
+            });
+    }
+
+    function toggleMap() {
+        const mapElement = document.getElementById('map');
+        const toggleIcon = document.querySelector('#mapToggle i');
+        
+        mapVisible = !mapVisible;
+        
+        if (mapVisible) {
+            mapElement.classList.add('visible');
+            toggleIcon.className = 'fas fa-chevron-down';
+            // Forzar resize del mapa cuando se muestra
+            if (map) {
+                setTimeout(() => {
+                    google.maps.event.trigger(map, 'resize');
+                }, 300);
+            }
+        } else {
+            mapElement.classList.remove('visible');
+            toggleIcon.className = 'fas fa-chevron-up';
+        }
+    }
+
+    function handleKeyPress(event) {
+        if (event.key === 'Enter') {
+            sendMessage();
+        }
+    }
+
+    function sendQuickQuestion(question) {
+        document.getElementById('messageInput').value = question;
+        sendMessage();
+    }
+
+    function formatMessage(text) {
+        text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        text = text.replace(/\n/g, '<br>');
+        
+        if (text.includes('RESTAURANTES RECOMENDADOS')) {
+            text = text.replace(/RESTAURANTES RECOMENDADOS/g, '🏆 <strong>RESTAURANTES RECOMENDADOS</strong>');
+        }
+        if (text.includes('OTROS LUGARES RECOMENDADOS')) {
+            text = text.replace(/OTROS LUGARES RECOMENDADOS/g, '📍 <strong>OTROS LUGARES RECOMENDADOS</strong>');
+        }
+        if (text.includes('OPINIONES DE CLIENTES')) {
+            text = text.replace(/OPINIONES DE CLIENTES/g, '💬 <strong>OPINIONES DE CLIENTES</strong>');
+        }
+        if (text.includes('PROMOCIONES ACTIVAS')) {
+            text = text.replace(/PROMOCIONES ACTIVAS/g, '🎁 <strong>PROMOCIONES ACTIVAS</strong>');
+        }
+        
+        return text;
+    }
+
+    function addMessage(text, isUser) {
+        const messagesDiv = document.getElementById('chatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+        
+        const time = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+        
+        const formattedText = isUser ? text : formatMessage(text);
+        
+        messageDiv.innerHTML = `
+            <div class="message-content">
+                ${formattedText}
+                <span class="message-time">${time}</span>
+            </div>
+        `;
+        
+        messagesDiv.appendChild(messageDiv);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function sendMessage() {
+        const input = document.getElementById('messageInput');
+        const message = input.value.trim();
+        
+        if (message === '') return;
+        
+        addMessage(message, true);
+        input.value = '';
+        
+        fetch('/chat', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ message: message })
+        })
+        .then(response => response.json())
+        .then(data => {
+            addMessage(data.reply, false);
+            if (data.platillo) {
+                updateMap(data.platillo);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            addMessage('Lo siento, hubo un error. Por favor intenta de nuevo.', false);
+        });
+    }
+
+    function clearMarkers() {
+        if (markers.length > 0) {
+            markers.forEach(marker => marker.setMap(null));
+            markers = [];
+        }
+        if (currentInfoWindow) {
+            currentInfoWindow.close();
+            currentInfoWindow = null;
+        }
+    }
+
+    function updateMap(platillo) {
+        fetch(`/mapa?platillo=${platillo}`)
+            .then(res => res.json())
+            .then(data => {
+                const mapContainer = document.getElementById('mapContainer');
+                const mapElement = document.getElementById('map');
+                
+                if (data.length === 0) {
+                    mapContainer.style.display = 'none';
+                    return;
+                }
+                
+                mapContainer.style.display = 'block';
+                
+                // Mostrar el mapa automáticamente
+                if (!mapVisible) {
+                    toggleMap();
+                }
+                
+                clearMarkers();
+                
+                if (!map) {
+                    map = new google.maps.Map(mapElement, {
+                        zoom: 14,
+                        center: { lat: data[0].ubicacion.lat, lng: data[0].ubicacion.lng },
+                        mapTypeControl: false,
+                        streetViewControl: false,
+                        styles: [{ featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] }]
+                    });
+                } else {
+                    map.setCenter({ lat: data[0].ubicacion.lat, lng: data[0].ubicacion.lng });
+                }
+                
+                data.forEach(lugar => {
+                    // Elegir icono según el tipo
+                    let iconUrl;
+                    if (lugar.tipo === 'restaurante_registrado') {
+                        iconUrl = "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"; // Azul para registrados
+                    } else {
+                        iconUrl = "http://maps.google.com/mapfiles/ms/icons/green-dot.png"; // Verde para Google
+                    }
+                    
+                    const marker = new google.maps.Marker({
+                        position: { lat: lugar.ubicacion.lat, lng: lugar.ubicacion.lng },
+                        map: map,
+                        title: lugar.nombre,
+                        animation: google.maps.Animation.DROP,
+                        icon: { 
+                            url: iconUrl, 
+                            scaledSize: new google.maps.Size(32, 32) 
+                        }
+                    });
+                    
+                    markers.push(marker);
+                    
+                    // Información personalizada según tipo
+                    let tipoTexto = lugar.tipo === 'restaurante_registrado' ? '🏆 Restaurante Registrado' : '📍 Google Places';
+                    let ratingTexto = lugar.rating ? `${'⭐'.repeat(Math.round(lugar.rating || 0))} ${lugar.rating}` : 'Sin calificaciones';
+                    
+                    const infoWindow = new google.maps.InfoWindow({
+                        content: `
+                            <div style="padding: 12px; max-width: 220px;">
+                                <div style="display: flex; align-items: center; gap: 5px; margin-bottom: 5px;">
+                                    ${lugar.tipo === 'restaurante_registrado' ? 
+                                      '<span style="background: #4CAF50; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem;">🏆 REGISTRADO</span>' : 
+                                      '<span style="background: #2196F3; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem;">📍 GOOGLE</span>'}
+                                </div>
+                                <strong style="color: #2d3748; font-size: 1rem;">${lugar.nombre}</strong><br>
+                                <div style="margin: 5px 0; color: #fbbf24; font-size: 0.9rem;">${ratingTexto}</div>
+                                <div style="color: #4a5568; font-size: 0.85rem; margin-top: 5px;">
+                                    <i class="fas fa-map-marker-alt" style="color: #4CAF50;"></i> ${lugar.direccion || 'Dirección no disponible'}
+                                </div>
+                                ${lugar.tipo === 'restaurante_registrado' ? 
+                                  '<div style="margin-top: 8px; color: #666; font-size: 0.8rem;"><i class="fas fa-check-circle" style="color: #4CAF50;"></i> Verificado por el equipo</div>' : ''}
+                            </div>
+                        `
+                    });
+                    
+                    marker.addListener('click', () => {
+                        if (currentInfoWindow) currentInfoWindow.close();
+                        infoWindow.open(map, marker);
+                        currentInfoWindow = infoWindow;
+                    });
+                });
+                
+                if (data.length > 1) {
+                    const bounds = new google.maps.LatLngBounds();
+                    markers.forEach(marker => bounds.extend(marker.getPosition()));
+                    map.fitBounds(bounds);
+                }
+            })
+            .catch(err => {
+                console.error("Error cargando mapa:", err);
+                document.getElementById('mapContainer').style.display = 'none';
+            });
+    }
+
+    // Inicializar mapa cuando la página cargue
+    document.addEventListener("DOMContentLoaded", function() {
+        initMap();
+    });
+</script>
+</body>
+</html>

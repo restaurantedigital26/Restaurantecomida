@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ platillo.nombre }} - {{ restaurante.nombre }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #fafafa;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Header con navegación */
+        .header-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .btn-volver {
+            background-color: #7a3e1d;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-volver:hover {
+            background-color: #5e2f15;
+        }
+
+        .restaurante-nombre {
+            color: #666;
+        }
+
+        /* Detalle del platillo */
+        .platillo-detalle {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .platillo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .platillo-header h1 {
+            color: #7a3e1d;
+            margin: 0;
+            font-size: 2rem;
+        }
+
+        .platillo-precio {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        .platillo-imagen {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .platillo-imagen img {
+            max-width: 400px;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .platillo-descripcion {
+            background: #f9f4ec;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .platillo-descripcion h3 {
+            color: #7a3e1d;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        .platillo-descripcion p {
+            line-height: 1.6;
+            color: #555;
+            margin: 0;
+        }
+
+        /* Información del restaurante */
+        .restaurante-info {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .restaurante-info h3 {
+            color: #7a3e1d;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-item i {
+            color: #4CAF50;
+            font-size: 1.2rem;
+        }
+
+        /* Estilos para chat IA */
+        .ia-chat-container {
+            margin-top: 40px;
+            background: linear-gradient(135deg, #f5f5f5, #fff);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .ia-chat-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .ia-chat-header i {
+            font-size: 2rem;
+            color: #2196F3;
+        }
+
+        .ia-chat-header h3 {
+            color: #2196F3;
+            margin: 0;
+            font-size: 1.3rem;
+        }
+
+        .ia-chat-mensajes {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+
+        .mensaje-ia-usuario {
+            background: #e3f2fd;
+            padding: 8px 12px;
+            border-radius: 15px 15px 5px 15px;
+            margin-bottom: 8px;
+            text-align: right;
+        }
+
+        .mensaje-ia-asistente {
+            background: #f5f5f5;
+            padding: 8px 12px;
+            border-radius: 15px 15px 15px 5px;
+            margin-bottom: 8px;
+        }
+
+        .preguntas-sugeridas {
+            margin-bottom: 15px;
+        }
+
+        .preguntas-sugeridas p {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .sugerida-btn {
+            background: white;
+            border: 1px solid #2196F3;
+            color: #2196F3;
+            padding: 5px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+
+        .sugerida-btn:hover {
+            background: #2196F3;
+            color: white;
+        }
+
+        .ia-input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .ia-input-container input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .ia-input-container button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0 20px;
+            cursor: pointer;
+        }
+
+        .ia-input-container button:hover {
+            background: #1976D2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navegación -->
+        <div class="header-nav">
+            <a href="{{ url_for('detalle_restaurante', id=restaurante._id) }}" class="btn-volver">
+                <i class="fas fa-arrow-left"></i> Volver al restaurante
+            </a>
+            <span class="restaurante-nombre">
+                <i class="fas fa-store"></i> {{ restaurante.nombre }}
+            </span>
+        </div>
+
+        <!-- Detalle del platillo -->
+        <div class="platillo-detalle">
+            <div class="platillo-header">
+                <h1><i class="fas fa-utensils"></i> {{ platillo.nombre }}</h1>
+                <span class="platillo-precio">${{ platillo.precio }}</span>
+            </div>
+
+            {% if platillo.foto %}
+            <div class="platillo-imagen">
+                <img src="{{ url_for('static', filename='uploads/' + platillo.foto) }}" alt="{{ platillo.nombre }}">
+            </div>
+            {% endif %}
+
+            <div class="platillo-descripcion">
+                <h3>Descripción:</h3>
+                <p>{{ platillo.descripcion }}</p>
+            </div>
+
+            <!-- Información del restaurante -->
+            <div class="restaurante-info">
+                <h3><i class="fas fa-store"></i> Información del Restaurante</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>{{ restaurante.direccion or 'Dirección no disponible' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-phone"></i>
+                        <span>{{ restaurante.telefono or 'Teléfono no disponible' }}</span>
+                    </div>
+                    {% if restaurante.redes_sociales %}
+                    <div class="info-item">
+                        <i class="fas fa-globe"></i>
+                        <a href="{{ restaurante.redes_sociales }}" target="_blank">Redes sociales</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ASISTENTE IA ESPECÍFICO DEL PLATILLO (ÚNICO CHAT) -->
+        <div class="ia-chat-container">
+            <div class="ia-chat-header">
+                <i class="fas fa-robot"></i>
+                <h3>Asistente Virtual de {{ platillo.nombre }}</h3>
+            </div>
+            <p style="color: #666; margin-bottom: 15px;">
+                Pregúntame cualquier cosa sobre este platillo: ingredientes, personalizaciones, tiempo de preparación...
+            </p>
+            
+            <!-- Contenedor del chat IA -->
+            <div class="ia-chat-mensajes" id="iaChatMensajes">
+                <!-- Mensaje de bienvenida -->
+                <div style="margin-bottom: 10px; padding: 10px; background: #f0f0f0; border-radius: 10px;">
+                    <strong>🤖 Asistente:</strong> ¡Hola! Soy el asistente virtual de {{ platillo.nombre }}. ¿En qué puedo ayudarte?
+                </div>
+            </div>
+            
+            <!-- Preguntas sugeridas -->
+            <div class="preguntas-sugeridas">
+                <p>Preguntas frecuentes:</p>
+                <div>
+                    <button class="sugerida-btn" onclick="preguntarIA('¿Qué ingredientes tiene {{ platillo.nombre }}?')">🥗 Ingredientes</button>
+                    <button class="sugerida-btn" onclick="preguntarIA('¿Tiene algún alérgeno?')">⚠️ Alérgenos</button>
+                    <button class="sugerida-btn" onclick="preguntarIA('¿Se puede personalizar?')">⚙️ Personalizar</button>
+                    <button class="sugerida-btn" onclick="preguntarIA('¿Cuánto tiempo tardan?')">⏱️ Tiempo</button>
+                </div>
+            </div>
+            
+            <!-- Input para preguntar -->
+            <div class="ia-input-container">
+                <input type="text" id="iaPregunta" placeholder="Escribe tu pregunta...">
+                <button onclick="enviarPreguntaIA()">
+                    <i class="fas fa-paper-plane"></i> Preguntar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let iaHistorial = [];
+
+        // Funciones para chat IA
+        function agregarMensajeIA(rol, texto) {
+            const contenedor = document.getElementById('iaChatMensajes');
+            const div = document.createElement('div');
+            div.className = rol === 'usuario' ? 'mensaje-ia-usuario' : 'mensaje-ia-asistente';
+            div.innerHTML = `<strong>${rol === 'usuario' ? '👤 Tú' : '🤖 Asistente'}:</strong> ${texto}`;
+            contenedor.appendChild(div);
+            contenedor.scrollTop = contenedor.scrollHeight;
+        }
+
+        function preguntarIA(pregunta) {
+            document.getElementById('iaPregunta').value = pregunta;
+            enviarPreguntaIA();
+        }
+
+        function enviarPreguntaIA() {
+            const pregunta = document.getElementById('iaPregunta').value.trim();
+            if (!pregunta) return;
+
+            // Mostrar pregunta del usuario
+            agregarMensajeIA('usuario', pregunta);
+            
+            // Limpiar input
+            document.getElementById('iaPregunta').value = '';
+
+            // Agregar al historial
+            iaHistorial.push({role: "user", content: pregunta});
+
+            // Enviar a la API
+            fetch('/api/chat-ia-platillo', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    restaurante_id: '{{ restaurante._id }}',
+                    platillo_index: {{ platillo_index }},
+                    mensaje: pregunta,
+                    historial: iaHistorial
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.respuesta) {
+                    agregarMensajeIA('asistente', data.respuesta);
+                    iaHistorial.push({role: "assistant", content: data.respuesta});
+                } else {
+                    agregarMensajeIA('asistente', 'Lo siento, no pude procesar tu pregunta. Intenta de nuevo.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                agregarMensajeIA('asistente', 'Hubo un error. Por favor intenta más tarde.');
+            });
+        }
+    </script>
+</body>
+</html>

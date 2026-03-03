@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Configurar IA - {{ platillo.nombre }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header con navegación */
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 25px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header-info h1 {
+            color: #2d3748;
+            font-size: 2rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-info h1 i {
+            color: #4CAF50;
+        }
+
+        .header-info .platillo-nombre {
+            color: #4CAF50;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+
+        .header-info .restaurante-nombre {
+            color: #666;
+            font-size: 1rem;
+            margin-top: 5px;
+        }
+
+        .btn-volver {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 10px 20px rgba(76, 175, 80, 0.3);
+            font-size: 1.1rem;
+        }
+
+        .btn-volver:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(76, 175, 80, 0.4);
+        }
+
+        /* Info card del platillo */
+        .platillo-info-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 30px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .platillo-icon {
+            font-size: 4rem;
+            background: rgba(255,255,255,0.2);
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .platillo-text h2 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .platillo-text p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 500px;
+        }
+
+        .platillo-precio {
+            background: rgba(255,255,255,0.2);
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border: 2px solid white;
+        }
+
+        /* Grid de configuración */
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        /* Tarjetas de configuración */
+        .config-card {
+            background: white;
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .config-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .card-header i {
+            font-size: 2.5rem;
+            color: #4CAF50;
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            padding: 15px;
+            border-radius: 15px;
+        }
+
+        .card-header h3 {
+            color: #2d3748;
+            font-size: 1.5rem;
+        }
+
+        .card-header p {
+            color: #666;
+            font-size: 0.95rem;
+            margin-top: 5px;
+        }
+
+        /* Elementos de formulario */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #2d3748;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: vertical;
+            min-height: 150px;
+            transition: all 0.3s;
+            font-family: 'Courier New', monospace;
+        }
+
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.1);
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.1);
+        }
+
+        .help-text {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .help-text i {
+            color: #4CAF50;
+        }
+
+        .ejemplo-box {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .ejemplo-box strong {
+            color: #2d3748;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .ejemplo-box code {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            color: #4CAF50;
+            font-family: 'Courier New', monospace;
+            display: inline-block;
+            margin: 2px 0;
+        }
+
+        /* Botón guardar */
+        .btn-guardar-container {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .btn-guardar {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 20px 60px;
+            border-radius: 50px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 20px 40px rgba(76, 175, 80, 0.3);
+            transition: all 0.3s;
+        }
+
+        .btn-guardar:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 30px 60px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn-guardar i {
+            font-size: 1.5rem;
+        }
+
+        /* Preview de cómo se verá */
+        .preview-section {
+            background: white;
+            border-radius: 25px;
+            padding: 30px;
+            margin-top: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .preview-section h3 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.3rem;
+        }
+
+        .preview-chat {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 25px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .preview-message {
+            background: #e3f2fd;
+            padding: 15px 20px;
+            border-radius: 20px 20px 5px 20px;
+            margin-bottom: 15px;
+            max-width: 80%;
+        }
+
+        .preview-message strong {
+            color: #1976D2;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .preview-response {
+            background: #f5f5f5;
+            padding: 15px 20px;
+            border-radius: 20px 20px 20px 5px;
+            max-width: 80%;
+            margin-left: auto;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .platillo-info-card {
+                grid-template-columns: 1fr;
+                text-align: center;
+                padding: 30px 20px;
+            }
+
+            .platillo-icon {
+                margin: 0 auto;
+            }
+
+            .config-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .card-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .btn-guardar {
+                width: 100%;
+                padding: 15px 30px;
+            }
+
+            .preview-chat {
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header-info h1 {
+                font-size: 1.5rem;
+            }
+
+            .platillo-text h2 {
+                font-size: 1.8rem;
+            }
+
+            .card-header h3 {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header con navegación -->
+        <div class="header">
+            <div class="header-info">
+                <h1>
+                    <i class="fas fa-robot"></i>
+                    Configurar Asistente IA
+                </h1>
+                <div class="platillo-nombre">
+                    <i class="fas fa-utensils"></i> {{ platillo.nombre }}
+                </div>
+                <div class="restaurante-nombre">
+                    <i class="fas fa-store"></i> {{ restaurante.nombre }}
+                </div>
+            </div>
+            <a href="{{ url_for('detalle_platillo_restaurante', restaurante_id=restaurante._id, platillo_index=platillo_index) }}" class="btn-volver">
+                <i class="fas fa-arrow-left"></i>
+                Volver al Platillo
+            </a>
+        </div>
+
+        <!-- Info card del platillo -->
+        <div class="platillo-info-card">
+            <div class="platillo-icon">
+                <i class="fas fa-utensils"></i>
+            </div>
+            <div class="platillo-text">
+                <h2>{{ platillo.nombre }}</h2>
+                <p>{{ platillo.descripcion[:150] }}{% if platillo.descripcion and platillo.descripcion|length > 150 %}...{% endif %}</p>
+            </div>
+            <div class="platillo-precio">
+                ${{ platillo.precio }}
+            </div>
+        </div>
+
+        <form method="POST">
+            <!-- Grid de configuración -->
+            <div class="config-grid">
+                <!-- Tarjeta: Ingredientes -->
+                <div class="config-card">
+                    <div class="card-header">
+                        <i class="fas fa-carrot"></i>
+                        <div>
+                            <h3>Ingredientes</h3>
+                            <p>Lista detallada de ingredientes del platillo</p>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <textarea name="ingredientes" placeholder="Escribe cada ingrediente en una línea nueva...">{{ config.ingredientes|join('\n') if config and config.ingredientes else '' }}</textarea>
+                        <div class="help-text">
+                            <i class="fas fa-info-circle"></i>
+                            Un ingrediente por línea
+                        </div>
+                        <div class="ejemplo-box">
+                            <strong>📝 Ejemplo:</strong>
+                            <code>Maíz cacahuazintle</code><br>
+                            <code>Pollo deshebrado</code><br>
+                            <code>Lechuga fresca</code><br>
+                            <code>Rábano en rodajas</code><br>
+                            <code>Cebolla picada</code>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tarjeta: Alérgenos -->
+                <div class="config-card">
+                    <div class="card-header">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <h3>Alérgenos</h3>
+                            <p>Advertencias sobre posibles alérgenos</p>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" name="alergenos" placeholder="gluten, lácteos, nueces, mariscos..." value="{{ config.alergenos|join(', ') if config and config.alergenos else '' }}">
+                        <div class="help-text">
+                            <i class="fas fa-info-circle"></i>
+                            Separa cada alérgeno con una coma
+                        </div>
+                        <div class="ejemplo-box">
+                            <strong>⚠️ Ejemplo:</strong>
+                            <code>gluten, lácteos, nueces, mariscos, soya</code>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tarjeta: Personalizaciones -->
+                <div class="config-card">
+                    <div class="card-header">
+                        <i class="fas fa-sliders-h"></i>
+                        <div>
+                            <h3>Personalizaciones</h3>
+                            <p>Opciones que el cliente puede modificar</p>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <textarea name="personalizaciones" placeholder="Escribe cada opción en una línea nueva...">{{ config.personalizaciones|join('\n') if config and config.personalizaciones else '' }}</textarea>
+                        <div class="help-text">
+                            <i class="fas fa-info-circle"></i>
+                            Una opción por línea
+                        </div>
+                        <div class="ejemplo-box">
+                            <strong>⚙️ Ejemplo:</strong>
+                            <code>Sin cebolla</code><br>
+                            <code>Con más carne ($20 extra)</code><br>
+                            <code>Salsa roja o verde</code><br>
+                            <code>Caldo extra</code>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tarjeta: Preguntas frecuentes -->
+                <div class="config-card">
+                    <div class="card-header">
+                        <i class="fas fa-question-circle"></i>
+                        <div>
+                            <h3>Preguntas Frecuentes</h3>
+                            <p>Formato: pregunta|respuesta</p>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <textarea name="faqs" placeholder="¿Tiene opción vegetariana?|Sí, podemos prepararlo sin carne&#10;¿Cuánto tiempo tardan?|Aproximadamente 15-20 minutos">{% if config and config.faqs %}{% for faq in config.faqs %}{{ faq.pregunta }}|{{ faq.respuesta }}{% if not loop.last %}&#10;{% endif %}{% endfor %}{% endif %}</textarea>
+                        <div class="help-text">
+                            <i class="fas fa-info-circle"></i>
+                            Cada línea: pregunta|respuesta
+                        </div>
+                        <div class="ejemplo-box">
+                            <strong>❓ Ejemplo:</strong>
+                            <code>¿Tiene versión vegetariana?|Sí, podemos sustituir la carne por hongos</code><br>
+                            <code>¿Puedo pedirlo sin cebolla?|Claro, solo indícalo en las notas</code><br>
+                            <code>¿Cuánto rinde?|El pozole es para 2-3 personas</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botón guardar -->
+            <div class="btn-guardar-container">
+                <button type="submit" class="btn-guardar">
+                    <i class="fas fa-save"></i>
+                    Guardar Configuración IA
+                </button>
+            </div>
+        </form>
+
+        <!-- Preview de cómo se verá -->
+        <div class="preview-section">
+            <h3>
+                <i class="fas fa-eye"></i>
+                Vista previa del chat IA
+            </h3>
+            <div class="preview-chat">
+                <div class="preview-message">
+                    <strong>👤 Tú:</strong>
+                    ¿Qué ingredientes tiene?
+                </div>
+                <div class="preview-response">
+                    <strong>🤖 Asistente:</strong>
+                    El platillo está preparado con maíz cacahuazintle, pollo deshebrado, lechuga fresca, rábano en rodajas y cebolla picada. ¿Te gustaría alguna modificación?
+                </div>
+                <div style="color: #666; text-align: center; margin-top: 15px; font-size: 0.9rem;">
+                    <i class="fas fa-info-circle"></i>
+                    La IA responderá basándose en la configuración que guardes
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function previewImagen(input) {
+            const preview = document.getElementById('preview-container');
+            const img = document.getElementById('imagen-preview');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    img.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

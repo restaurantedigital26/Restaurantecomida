@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ platillo.nombre }} - {{ restaurante.nombre }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #fafafa;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Header con navegación */
+        .header-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .btn-volver {
+            background-color: #7a3e1d;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-volver:hover {
+            background-color: #5e2f15;
+        }
+
+        /* Detalle del platillo */
+        .platillo-detalle {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .platillo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .platillo-header h1 {
+            color: #7a3e1d;
+            margin: 0;
+            font-size: 2rem;
+        }
+
+        .platillo-precio {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        .platillo-imagen {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .platillo-imagen img {
+            max-width: 400px;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .platillo-descripcion {
+            background: #f9f4ec;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        /* Información del restaurante */
+        .restaurante-info {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .restaurante-info h3 {
+            color: #7a3e1d;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-item i {
+            color: #4CAF50;
+            font-size: 1.2rem;
+        }
+
+        /* Chat específico del platillo */
+        .chat-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .chat-container h2 {
+            color: #7a3e1d;
+            margin-top: 0;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-box {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            height: 400px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .mensaje {
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        .mensaje-cliente {
+            background-color: #4CAF50;
+            color: white;
+            align-self: flex-end;
+        }
+
+        .mensaje-restaurante {
+            background-color: #f1f1f1;
+            color: #333;
+            align-self: flex-start;
+        }
+
+        .mensaje-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .mensaje-cliente .mensaje-header {
+            justify-content: flex-end;
+        }
+
+        .mensaje-texto {
+            line-height: 1.4;
+            margin: 5px 0;
+        }
+
+        .mensaje-fecha {
+            font-size: 0.7rem;
+            display: block;
+            margin-top: 5px;
+            opacity: 0.8;
+        }
+
+        .chat-form {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-form textarea {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            resize: none;
+            font-family: inherit;
+        }
+
+        .chat-form textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .chat-form button {
+            padding: 0 25px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chat-form button:hover {
+            background: #45a049;
+        }
+
+        /* Preguntas rápidas */
+        .quick-questions {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f4ec;
+            border-radius: 10px;
+        }
+
+        .quick-questions h3 {
+            color: #7a3e1d;
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .questions-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .question-btn {
+            background: white;
+            border: 1px solid #4CAF50;
+            color: #4CAF50;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .question-btn:hover {
+            background: #4CAF50;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navegación -->
+        <div class="header-nav">
+            <a href="{{ url_for('dashboard_cliente') }}" class="btn-volver">
+                <i class="fas fa-arrow-left"></i> Volver al Dashboard
+            </a>
+            <span style="color: #666;">
+                <i class="fas fa-store"></i> {{ restaurante.nombre }}
+            </span>
+        </div>
+
+        <!-- Detalle del platillo -->
+        <div class="platillo-detalle">
+            <div class="platillo-header">
+                <h1><i class="fas fa-utensils"></i> {{ platillo.nombre }}</h1>
+                <span class="platillo-precio">${{ platillo.precio }}</span>
+            </div>
+
+            {% if platillo.foto %}
+            <div class="platillo-imagen">
+                <img src="{{ url_for('static', filename='uploads/' + platillo.foto) }}" alt="{{ platillo.nombre }}">
+            </div>
+            {% endif %}
+
+            <div class="platillo-descripcion">
+                <p><strong>Descripción:</strong></p>
+                <p>{{ platillo.descripcion }}</p>
+            </div>
+
+            <!-- Información del restaurante -->
+            <div class="restaurante-info">
+                <h3><i class="fas fa-store"></i> Información del Restaurante</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>{{ restaurante.direccion or 'Dirección no disponible' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-phone"></i>
+                        <span>{{ restaurante.telefono or 'Teléfono no disponible' }}</span>
+                    </div>
+                    {% if restaurante.redes_sociales %}
+                    <div class="info-item">
+                        <i class="fas fa-globe"></i>
+                        <a href="{{ restaurante.redes_sociales }}" target="_blank">Redes sociales</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat específico del platillo -->
+        <div class="chat-container">
+            <h2><i class="fas fa-comments"></i> Pregunta sobre {{ platillo.nombre }}</h2>
+            
+            <!-- Mensajes del chat -->
+            <div class="chat-box" id="chatBox">
+                {% if chat and chat.mensajes %}
+                    {% for m in chat.mensajes %}
+                        {% if m.tipo == 'Cliente' %}
+                            <div class="mensaje mensaje-cliente">
+                                <div class="mensaje-header">
+                                    <strong>Tú</strong>
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="mensaje-texto">{{ m.texto }}</div>
+                                <small class="mensaje-fecha">
+                                    <i class="far fa-clock"></i> {{ m.fecha.strftime("%d %b %Y - %H:%M") if m.fecha else '' }}
+                                </small>
+                            </div>
+                        {% else %}
+                            <div class="mensaje mensaje-restaurante">
+                                <div class="mensaje-header">
+                                    <i class="fas fa-store"></i>
+                                    <strong>{{ restaurante.nombre }}</strong>
+                                </div>
+                                <div class="mensaje-texto">{{ m.texto }}</div>
+                                <small class="mensaje-fecha">
+                                    <i class="far fa-clock"></i> {{ m.fecha.strftime("%d %b %Y - %H:%M") if m.fecha else '' }}
+                                </small>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <p style="text-align: center; color: #666; padding: 40px;">
+                        <i class="fas fa-comment-dots" style="font-size: 3rem; margin-bottom: 15px;"></i><br>
+                        No hay mensajes aún. ¡Pregunta sobre {{ platillo.nombre }}!
+                    </p>
+                {% endif %}
+            </div>
+
+            <!-- Preguntas rápidas -->
+            <div class="quick-questions">
+                <h3><i class="fas fa-bolt"></i> Preguntas rápidas sobre {{ platillo.nombre }}:</h3>
+                <div class="questions-buttons">
+                    <button class="question-btn" onclick="enviarPregunta('¿Cuál es el precio de {{ platillo.nombre }}?')">
+                        💰 Precio
+                    </button>
+                    <button class="question-btn" onclick="enviarPregunta('¿De qué viene acompañado {{ platillo.nombre }}?')">
+                        🍽️ Acompañamientos
+                    </button>
+                    <button class="question-btn" onclick="enviarPregunta('¿Hay variaciones de {{ platillo.nombre }}?')">
+                        🔄 Variedades
+                    </button>
+                    <button class="question-btn" onclick="enviarPregunta('¿Cuánto tiempo tardan en preparar {{ platillo.nombre }}?')">
+                        ⏰ Tiempo de preparación
+                    </button>
+                    <button class="question-btn" onclick="enviarPregunta('¿Tienen {{ platillo.nombre }} para llevar?')">
+                        🥡 Para llevar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Formulario para enviar mensaje -->
+            <form action="{{ url_for('enviar_chat', id=restaurante._id) }}" method="POST" class="chat-form" id="chatForm">
+                <textarea name="mensaje" id="mensajeInput" rows="2" placeholder="Escribe tu pregunta sobre {{ platillo.nombre }}..." required></textarea>
+                <button type="submit">
+                    <i class="fas fa-paper-plane"></i> Enviar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const chatBox = document.getElementById("chatBox");
+        if(chatBox) {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function enviarPregunta(pregunta) {
+            document.getElementById('mensajeInput').value = pregunta;
+            document.getElementById('chatForm').submit();
+        }
+
+        // Auto-refrescar para ver nuevos mensajes (cada 10 segundos)
+        setInterval(function() {
+            location.reload();
+        }, 10000);
+    </script>
+</body>
+</html>

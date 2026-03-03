@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel Cliente</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #fafafa;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            background: linear-gradient(135deg, #7a3e1d, #4CAF50);
+            color: white;
+            padding: 30px 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0 0 10px;
+            font-size: 2.2rem;
+        }
+        .header p {
+            margin: 0;
+            opacity: 0.9;
+        }
+        .acciones-rapidas {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+        .btn-accion {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.3s;
+        }
+        .btn-accion:hover {
+            transform: translateY(-3px);
+        }
+        .btn-accion.secundario {
+            background-color: #7a3e1d;
+        }
+        
+        /* ===== SECCIÓN DE PUBLICIDAD - VISIBLE ===== */
+        .publicidad-section {
+            margin-bottom: 40px;
+        }
+        
+        .publicidad-section h2 {
+            color: #ecc9b6;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+        }
+        
+        .publicidad-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .publicidad-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            border-left: 5px solid #FF9800;
+        }
+        
+        .publicidad-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        
+        .publicidad-tipo {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        
+        .tipo-oferta { background: #f44336; }
+        .tipo-evento { background: #2196F3; }
+        .tipo-promocion { background: #FF9800; }
+        
+        .publicidad-img {
+    width: 100%;
+    height: 250px;
+    object-fit: contain;  /* Cambiado de 'cover' a 'contain' */
+    background-color: #f5f5f5;  /* Fondo gris para espacios vacíos */
+    border-bottom: 1px solid #eee;
+}
+        
+        .publicidad-contenido {
+            padding: 15px;
+        }
+        
+        .publicidad-restaurante {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #4CAF50;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .publicidad-titulo {
+            font-size: 1.2rem;
+            margin: 5px 0;
+            color: #333;
+        }
+        
+        .publicidad-descripcion {
+            color: #666;
+            line-height: 1.5;
+            margin: 10px 0;
+            font-size: 0.95rem;
+        }
+        
+        .publicidad-descuento {
+            background: #4CAF50;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            display: inline-block;
+            margin: 8px 0;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .publicidad-fechas {
+            color: #888;
+            font-size: 0.8rem;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn-ver-restaurante {
+            background: #f0f0f0;
+            color: #333;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            transition: background 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        .btn-ver-restaurante:hover {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        /* SECCIÓN DE RESTAURANTES DESTACADOS */
+        .destacados-section {
+            margin-bottom: 40px;
+        }
+        
+        .destacados-section h2 {
+            color: #7a3e1d;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .destacados-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .restaurante-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .restaurante-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        }
+        
+        .restaurante-card i {
+            font-size: 2.5rem;
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+        
+        .restaurante-card h3 {
+            margin: 10px 0;
+            color: #333;
+            font-size: 1.1rem;
+        }
+        
+        .restaurante-card p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header" style="color: white !important;">
+    <h1 style="color: white !important;"><i class="fas fa-user"></i> ¡Bienvenido, {{ nombre }}!</h1>
+    <p style="color: white !important;">Explora restaurantes, descubre ofertas y comparte tu opinión</p>
+</div>
+
+        <div class="acciones-rapidas">
+            <a href="{{ url_for('ver_restaurantes') }}" class="btn-accion">
+                <i class="fas fa-store"></i> Ver Restaurantes
+            </a>
+            <a href="{{ url_for('chat_ui') }}" class="btn-accion secundario">
+                <i class="fas fa-robot"></i> Chat IA
+            </a>
+            <a href="{{ url_for('logout') }}" class="btn-accion" style="background-color: #f44336;">
+                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+            </a>
+        </div>
+
+        <!-- SECCIÓN DE PUBLICIDAD - VISIBLE -->
+        {% if publicidad and publicidad|length > 0 %}
+        <div class="publicidad-section">
+            <h2><i class="fas fa-bullhorn"></i> Ofertas y Promociones</h2>
+            <div class="publicidad-grid">
+                {% for pub in publicidad %}
+                <div class="publicidad-card">
+                    <div class="publicidad-tipo tipo-{{ pub.tipo }}">
+                        {{ pub.tipo|upper }}
+                    </div>
+                    
+                    {% if pub.imagen %}
+                    <img src="{{ url_for('static', filename='uploads/publicidad/' + pub.imagen) }}" 
+                         alt="{{ pub.titulo }}" class="publicidad-img">
+                    {% endif %}
+                    
+                    <div class="publicidad-contenido">
+                        <div class="publicidad-restaurante">
+                            <i class="fas fa-store"></i> {{ pub.restaurante_nombre }}
+                        </div>
+                        
+                        <h3 class="publicidad-titulo">{{ pub.titulo }}</h3>
+                        <p class="publicidad-descripcion">{{ pub.descripcion }}</p>
+                        
+                        {% if pub.descuento %}
+                        <div class="publicidad-descuento">
+                            <i class="fas fa-tag"></i> {{ pub.descuento }}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="publicidad-fechas">
+                            {% if pub.fecha_inicio %}
+                            <span><i class="far fa-calendar-alt"></i> {{ pub.fecha_inicio.strftime("%d/%m") }}</span>
+                            {% endif %}
+                            {% if pub.fecha_fin %}
+                            <span><i class="far fa-calendar-alt"></i> hasta {{ pub.fecha_fin.strftime("%d/%m/%Y") }}</span>
+                            {% endif %}
+                        </div>
+                        
+                        <button class="btn-ver-restaurante" 
+        onclick="window.location.href='{{ url_for('detalle_restaurante_desde_publicidad', pub_id=pub._id, rest_id=pub.restaurante_id) }}'">
+    <i class="fas fa-eye"></i> Ver Restaurante
+</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <div class="publicidad-section">
+            <h2><i class="fas fa-bullhorn"></i> Ofertas y Promociones</h2>
+            <p style="text-align: center; color: #666; padding: 30px; background: #f9f9f9; border-radius: 10px;">
+                <i class="fas fa-info-circle"></i> No hay promociones activas en este momento.
+            </p>
+        </div>
+        {% endif %}
+
+        <!-- SECCIÓN DE RESTAURANTES DESTACADOS -->
+        <div class="destacados-section">
+            <h2><i class="fas fa-star"></i> Restaurantes Destacados</h2>
+            <div class="destacados-grid">
+                <div class="restaurante-card" onclick="window.location.href='{{ url_for('ver_restaurantes') }}'">
+                    <i class="fas fa-utensils"></i>
+                    <h3>Explorar Todos</h3>
+                    <p>Descubre la variedad gastronómica de Iguala</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

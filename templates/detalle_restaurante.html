@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ restaurante.nombre }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* TUS ESTILOS ORIGINALES SE MANTIENEN IGUAL */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #fafafa;
+        }
+
+        h1, h2, h3 {
+            color: #333;
+        }
+
+        .detalle-restaurante {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .descripcion {
+            font-size: 1rem;
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        .info-restaurante {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .info-restaurante p {
+            margin: 5px 0;
+        }
+
+        /* ESTILOS PARA SCROLL LATERAL EN MENÚ */
+        .menu-cliente-scroll-container {
+            width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            white-space: nowrap;
+            padding: 10px 0;
+            margin-bottom: 30px;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .menu-cliente-scroll-container::-webkit-scrollbar {
+            height: 8px;
+        }
+        
+        .menu-cliente-scroll-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .menu-cliente-scroll-container::-webkit-scrollbar-thumb {
+            background: #4CAF50;
+            border-radius: 10px;
+        }
+        
+        .menu-cliente-scroll {
+            display: inline-flex;
+            gap: 20px;
+            flex-wrap: nowrap;
+        }
+        
+        .platillo-cliente-card {
+            width: 280px;
+            min-width: 280px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            overflow: hidden;
+            background: white;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            white-space: normal;
+            cursor: pointer;
+        }
+        
+        .platillo-cliente-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            border-color: #4CAF50;
+        }
+        
+        .platillo-cliente-card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+        
+        .platillo-cliente-info {
+            padding: 15px;
+        }
+        
+        .platillo-cliente-info h3 {
+            margin: 0 0 8px;
+            color: #333;
+            font-size: 1.2rem;
+        }
+        
+        .platillo-cliente-descripcion {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            height: 40px;
+            overflow: hidden;
+        }
+        
+        .platillo-cliente-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        .platillo-cliente-precio {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        
+        .platillo-cliente-ver {
+            color: #4CAF50;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .scroll-controls-cliente {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .scroll-btn-cliente {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* ESTILOS PARA CALIFICACIONES */
+        .rating-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .rating-summary {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .rating-big {
+            text-align: center;
+            min-width: 120px;
+        }
+        
+        .rating-big .number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        
+        .rating-stars {
+            display: flex;
+            gap: 2px;
+            margin: 5px 0;
+        }
+        
+        .rating-stars i {
+            color: gold;
+            font-size: 1.2rem;
+        }
+        
+        .estrellas-calificacion {
+            display: flex;
+            gap: 5px;
+            margin: 10px 0;
+        }
+        
+        .estrella-input {
+            color: gold;
+            font-size: 1.8rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .estrella-input:hover {
+            transform: scale(1.2);
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            resize: none;
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+
+        a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        hr {
+            border: 0;
+            height: 1px;
+            background: #ddd;
+            margin: 30px 0;
+        }
+
+        /* NUEVOS ESTILOS SOLO PARA EL MENÚ HAMBURGUESA */
+        .menu-hamburguesa {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 45px;
+            height: 45px;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .menu-hamburguesa:hover {
+            background-color: #45a049;
+        }
+
+        .menu-hamburguesa span {
+            width: 25px;
+            height: 3px;
+            background-color: white;
+            border-radius: 3px;
+            transition: 0.3s;
+        }
+
+        .menu-hamburguesa.active span:nth-child(1) {
+            transform: rotate(45deg) translate(6px, 6px);
+        }
+
+        .menu-hamburguesa.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .menu-hamburguesa.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(6px, -6px);
+        }
+
+        /* SIDEBAR - Panel lateral */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 280px;
+            height: 100vh;
+            background-color: #f0f0f0;
+            padding: 80px 20px 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            transition: left 0.3s ease;
+            z-index: 999;
+            overflow-y: auto;
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar h2 {
+            color: #444;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+
+        .sidebar-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background-color: #e0e0e0;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            background: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            font-size: 0.9rem;
+        }
+
+        .tab-btn i {
+            font-size: 1rem;
+        }
+
+        .tab-btn.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .tab-btn:not(.active):hover {
+            background-color: #d0d0d0;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Estilos para el chat dentro del sidebar */
+        .chat-mensajes {
+            max-height: 350px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .mensaje-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            max-width: 90%;
+        }
+
+        .mensaje-cliente {
+            background-color: #4CAF50;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .mensaje-restaurante {
+            background-color: #f1f1f1;
+            color: #333;
+            margin-right: auto;
+        }
+
+        .mensaje-item strong {
+            display: block;
+            margin-bottom: 3px;
+            font-size: 0.85rem;
+        }
+
+        .mensaje-cliente strong {
+            color: white;
+        }
+
+        .mensaje-restaurante strong {
+            color: #4CAF50;
+        }
+
+        .mensaje-item p {
+            margin: 3px 0;
+            font-size: 0.95rem;
+        }
+
+        .mensaje-fecha {
+            font-size: 0.7rem;
+            display: block;
+            margin-top: 3px;
+            opacity: 0.8;
+        }
+
+        .mensaje-cliente .mensaje-fecha {
+            color: rgba(255,255,255,0.8);
+        }
+
+        .mensaje-restaurante .mensaje-fecha {
+            color: #888;
+        }
+
+        /* Estilos para comentarios en sidebar */
+        .comentarios-lista {
+            max-height: 350px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+
+        .comentario-item {
+            background-color: #fff;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+        }
+
+        .comentario-item strong {
+            color: #4CAF50;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .comentario-item p {
+            margin: 5px 0;
+            color: #333;
+        }
+
+        .badge {
+            background-color: #ff4444;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 0.7rem;
+            margin-left: 5px;
+        }
+
+        /* Formularios dentro del sidebar */
+        .sidebar-form {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+
+        .sidebar-form textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: none;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        .sidebar-form button {
+            width: 100%;
+            padding: 8px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .sidebar-form button:hover {
+            background-color: #45a049;
+        }
+
+        /* Ajuste para el contenido principal cuando el sidebar está abierto */
+        .main-content {
+            transition: margin-left 0.3s ease;
+            margin-left: 0;
+        }
+
+        .main-content.shifted {
+            margin-left: 280px;
+        }
+
+        /* ESTILOS PARA COMENTARIOS EN SECCIÓN PRINCIPAL */
+        .comentarios-principales {
+            margin-top: 40px;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        
+        .comentarios-principales h2 {
+            color: #7a3e1d;
+            margin-bottom: 20px;
+        }
+        
+        .comentarios-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .comentario-principal {
+            background: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 15px;
+            transition: transform 0.3s;
+        }
+        
+        .comentario-principal:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .comentario-header-principal {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .comentario-nombre-principal {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        
+        .comentario-fecha-principal {
+            color: #888;
+            font-size: 0.85rem;
+        }
+        
+        .comentario-texto-principal {
+            color: #333;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Botón menú hamburguesa -->
+<button class="menu-hamburguesa" id="menuToggle">
+    <span></span>
+    <span></span>
+    <span></span>
+</button>
+
+<!-- Sidebar con pestañas -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-tabs">
+        <button class="tab-btn active" onclick="switchTab('chats')">
+            <i class="fas fa-comments"></i> Chat
+            {% if chat and chat.mensajes %}
+                <span class="badge">{{ chat.mensajes|length }}</span>
+            {% endif %}
+        </button>
+        <button class="tab-btn" onclick="switchTab('comentarios')">
+            <i class="fas fa-star"></i> Mis Comentarios
+            {% if comentarios %}
+                <span class="badge">{{ comentarios|length }}</span>
+            {% endif %}
+        </button>
+    </div>
+
+    <!-- Pestaña de Chat - CONVERSACIÓN COMPLETA -->
+    <div id="tabChats" class="tab-content active">
+        <h2><i class="fas fa-comment-dots"></i> Chat con {{ restaurante.nombre }}</h2>
+        
+        <!-- Mensajes del chat - CONVERSACIÓN COMPLETA -->
+        <div class="chat-mensajes" id="chatMensajes">
+            {% if chat and chat.mensajes %}
+                {% for m in chat.mensajes %}
+                    {% if m.tipo == 'Cliente' %}
+                        <!-- Mensaje del cliente (tú) -->
+                        <div class="mensaje-item mensaje-cliente">
+                            <strong>Tú</strong>
+                            <p>{{ m.texto }}</p>
+                            <small class="mensaje-fecha">
+                                <i class="far fa-clock"></i> {{ m.fecha.strftime("%d %b %Y - %H:%M") if m.fecha else 'Fecha no disponible' }}
+                            </small>
+                        </div>
+                    {% else %}
+                        <!-- Mensaje del restaurante -->
+                        <div class="mensaje-item mensaje-restaurante">
+                            <strong>{{ restaurante.nombre }}</strong>
+                            <p>{{ m.texto }}</p>
+                            <small class="mensaje-fecha">
+                                <i class="far fa-clock"></i> {{ m.fecha.strftime("%d %b %Y - %H:%M") if m.fecha else 'Fecha no disponible' }}
+                            </small>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <p style="text-align: center; color: #666; padding: 20px;">
+                    <i class="far fa-comment-dots" style="font-size: 2rem; margin-bottom: 10px;"></i><br>
+                    No hay mensajes aún. ¡Inicia la conversación!
+                </p>
+            {% endif %}
+        </div>
+
+        <!-- PUBLICIDAD DEL RESTAURANTE -->
+        {% if restaurante.publicidad_activa %}
+        <div style="margin: 20px 0; background: linear-gradient(135deg, #fff3e0, #ffe0b2); border-radius: 10px; padding: 15px; border-left: 5px solid #FF9800;">
+            <h3 style="color: #FF9800; margin-top: 0;">
+                <i class="fas fa-bullhorn"></i> Promociones activas
+            </h3>
+            <div style="display: grid; gap: 15px;">
+                {% for pub in restaurante.publicidad_activa %}
+                <div style="background: white; border-radius: 8px; padding: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="background: #FF9800; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.8rem;">
+                            {{ pub.tipo|upper }}
+                        </span>
+                        {% if pub.descuento %}
+                        <span style="background: #4CAF50; color: white; padding: 3px 8px; border-radius: 3px;">
+                            <i class="fas fa-tag"></i> {{ pub.descuento }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    <h4 style="margin: 10px 0 5px;">{{ pub.titulo }}</h4>
+                    <p style="color: #666; margin: 5px 0;">{{ pub.descripcion }}</p>
+                    {% if pub.fecha_fin %}
+                    <p style="color: #999; font-size: 0.8rem; margin: 5px 0 0;">
+                        <i class="far fa-clock"></i> Válido hasta: {{ pub.fecha_fin.strftime("%d/%m/%Y") }}
+                    </p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Formulario para enviar mensaje -->
+        {% if session.get("tipo") == "cliente" %}
+        <div class="sidebar-form">
+            <form action="{{ url_for('enviar_chat', id=restaurante._id) }}" method="POST">
+                <textarea name="mensaje" rows="2" placeholder="Escribe tu mensaje..." required></textarea>
+                <button type="submit">
+                    <i class="fas fa-paper-plane"></i> Enviar mensaje
+                </button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Pestaña de Comentarios - MIS COMENTARIOS -->
+    <div id="tabComentarios" class="tab-content">
+        <h2><i class="fas fa-star"></i> Mis comentarios</h2>
+        
+        <!-- Lista de MIS comentarios -->
+        <div class="comentarios-lista">
+            {% if comentarios %}
+                {% set tiene_comentarios = false %}
+                {% for c in comentarios %}
+                    {% if c.cliente_id|string == session.user_id|string %}
+                        {% set tiene_comentarios = true %}
+                        <div class="comentario-item">
+                            <strong><i class="fas fa-user"></i> Tú</strong>
+                            <p>"{{ c.comentario }}"</p>
+                            <small class="mensaje-fecha">
+                                <i class="far fa-clock"></i> {{ c.fecha.strftime("%d %b %Y - %H:%M") if c.fecha else 'Fecha no disponible' }}
+                            </small>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+                {% if not tiene_comentarios %}
+                    <p style="text-align: center; color: #666; padding: 20px;">
+                        <i class="far fa-star" style="font-size: 2rem; margin-bottom: 10px;"></i><br>
+                        No has comentado aún. ¡Sé el primero en opinar!
+                    </p>
+                {% endif %}
+            {% else %}
+                <p style="text-align: center; color: #666; padding: 20px;">
+                    <i class="far fa-star" style="font-size: 2rem; margin-bottom: 10px;"></i><br>
+                    No hay comentarios aún. ¡Sé el primero en opinar!
+                </p>
+            {% endif %}
+        </div>
+
+        <!-- Formulario para nuevo comentario -->
+        {% if session.get("tipo") == "cliente" %}
+        <div class="sidebar-form">
+            <form action="{{ url_for('agregar_comentario_con_calificacion', id=restaurante._id) }}" method="POST">
+                <textarea name="mensaje" rows="2" placeholder="Escribe tu comentario..." required></textarea>
+                <button type="submit">
+                    <i class="fas fa-paper-plane"></i> Publicar comentario
+                </button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Contenido principal -->
+<div class="main-content" id="mainContent">
+    <div class="detalle-restaurante">
+
+        <h1>{{ restaurante.nombre }}</h1>
+
+        <p class="descripcion">
+            {{ restaurante.descripcion or "Este restaurante aún no ha agregado descripción." }}
+        </p>
+
+        <div class="info-restaurante">
+            <p><strong>📍 Dirección:</strong> {{ restaurante.direccion or 'No disponible' }}</p>
+            <p><strong>📞 Teléfono:</strong> {{ restaurante.telefono or 'No disponible' }}</p>
+
+            {% if restaurante.redes_sociales %}
+    <p>
+        <strong>🌐 Redes:</strong>
+        {% if restaurante.redes_sociales is mapping %}
+            {% for tipo, url in restaurante.redes_sociales.items() %}
+                {% set url_completa = url if url.startswith('http') else 'https://' + url %}
+                <a href="{{ url_completa }}" target="_blank" rel="noopener noreferrer" style="margin-right: 10px;">
+                    <i class="fab fa-{{ tipo }}"></i> {{ tipo|capitalize }}
+                </a>
+            {% endfor %}
+        {% else %}
+            {% set url_completa = restaurante.redes_sociales if restaurante.redes_sociales.startswith('http') else 'https://' + restaurante.redes_sociales %}
+            <a href="{{ url_completa }}" target="_blank" rel="noopener noreferrer">{{ restaurante.redes_sociales }}</a>
+        {% endif %}
+    </p>
+{% endif %}
+            {% include 'mapa_restaurante.html' %}
+        </div>
+
+        <!-- SECCIÓN DE CALIFICACIONES -->
+        <div class="rating-container">
+            <h2><i class="fas fa-star"></i> Calificaciones</h2>
+            <div class="rating-summary">
+                <div class="rating-big">
+                    <div class="number">{{ restaurante.promedio_general|round(1) if restaurante.promedio_general else '0.0' }}</div>
+                    <div>Promedio General</div>
+                    <div class="rating-stars">
+                        {% for i in range(1, 6) %}
+                            {% if i <= (restaurante.promedio_general|int) %}
+                                <i class="fas fa-star"></i>
+                            {% elif i - 0.5 <= (restaurante.promedio_general|float) %}
+                                <i class="fas fa-star-half-alt"></i>
+                            {% else %}
+                                <i class="far fa-star"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div style="font-size: 0.9rem; color: #666;">
+                        ({{ restaurante.total_calificaciones or 0 }} calificaciones)
+                    </div>
+                </div>
+                <div style="flex: 1;">
+                    <p><strong>Comida:</strong> {{ restaurante.promedio_comida|round(1) if restaurante.promedio_comida else 'N/A' }} / 5</p>
+                    <p><strong>Servicio:</strong> {{ restaurante.promedio_servicio|round(1) if restaurante.promedio_servicio else 'N/A' }} / 5</p>
+                </div>
+            </div>
+        </div>
+
+        <hr>
+
+        <h2>🍽️ Menú</h2>
+
+        {% if restaurante.menu %}
+            <div class="scroll-controls-cliente">
+                <button class="scroll-btn-cliente" onclick="scrollMenuCliente('left')" id="scrollClienteLeft">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="scroll-btn-cliente" onclick="scrollMenuCliente('right')" id="scrollClienteRight">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            
+            <div class="menu-cliente-scroll-container" id="menuClienteScroll">
+                <div class="menu-cliente-scroll">
+                    {% for platillo in restaurante.menu %}
+                        <div class="platillo-cliente-card" onclick="window.location.href='{{ url_for('detalle_platillo_cliente', restaurante_id=restaurante._id, platillo_index=loop.index0) }}'">
+                            {% if platillo.foto %}
+                                <img src="{{ url_for('static', filename='uploads/' + platillo.foto) }}" alt="{{ platillo.nombre }}">
+                            {% else %}
+                                <img src="{{ url_for('static', filename='img/no-image.png') }}" alt="Sin imagen">
+                            {% endif %}
+                            <div class="platillo-cliente-info">
+                                <h3>{{ platillo.nombre }}</h3>
+                                <p class="platillo-cliente-descripcion">{{ platillo.descripcion[:80] }}{% if platillo.descripcion and platillo.descripcion|length > 80 %}...{% endif %}</p>
+                                <div class="platillo-cliente-footer">
+                                    <span class="platillo-cliente-precio">${{ platillo.precio }}</span>
+                                    <span class="platillo-cliente-ver">
+                                        Ver más <i class="fas fa-arrow-right"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <script>
+                function scrollMenuCliente(direction) {
+                    const container = document.getElementById('menuClienteScroll');
+                    const scrollAmount = 300;
+                    
+                    if (direction === 'left') {
+                        container.scrollLeft -= scrollAmount;
+                    } else {
+                        container.scrollLeft += scrollAmount;
+                    }
+                }
+            </script>
+        {% else %}
+            <p>Este restaurante aún no ha agregado platillos.</p>
+        {% endif %}
+
+        <!-- SECCIÓN DE COMENTARIOS DE TODOS LOS CLIENTES -->
+        <div class="comentarios-principales">
+            <h2><i class="fas fa-comments"></i> Opiniones de nuestros clientes</h2>
+            
+            {% if comentarios %}
+                <div class="comentarios-grid">
+                    {% for c in comentarios %}
+                    <div class="comentario-principal">
+                        <div class="comentario-header-principal">
+                            <span class="comentario-nombre-principal">
+                                <i class="fas fa-user"></i> {{ c.cliente_nombre }}
+                            </span>
+                            <span class="comentario-fecha-principal">
+                                <i class="far fa-clock"></i> {{ c.fecha.strftime("%d/%m/%Y") if c.fecha else '' }}
+                            </span>
+                        </div>
+                        <p class="comentario-texto-principal">"{{ c.comentario }}"</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p style="text-align: center; color: #666; padding: 40px;">
+                    <i class="far fa-star" style="font-size: 3rem; margin-bottom: 15px;"></i><br>
+                    No hay comentarios aún. ¡Sé el primero en opinar!
+                </p>
+            {% endif %}
+        </div>
+
+        <!-- FORMULARIO DE CALIFICACIÓN (solo para clientes logueados) -->
+        {% if session.get("tipo") == "cliente" %}
+        <div style="margin-top: 40px; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+            <h3><i class="fas fa-pen"></i> Califica y Comenta tu experiencia</h3>
+            <form action="{{ url_for('agregar_comentario_con_calificacion', id=restaurante._id) }}" method="POST">
+                <div style="display: flex; gap: 30px; margin-bottom: 20px; flex-wrap: wrap;">
+                    <div>
+                        <label style="display: block; margin-bottom: 5px;"><strong>Califica la Comida:</strong></label>
+                        <div class="estrellas-calificacion" id="estrellas-comida-container">
+                            {% for i in range(1, 6) %}
+                                <i class="far fa-star estrella-input" onclick="seleccionarEstrella('comida', {{ i }})" id="estrella-comida-{{ i }}"></i>
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" name="calificacion_comida" id="calificacion_comida" required>
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 5px;"><strong>Califica el Servicio:</strong></label>
+                        <div class="estrellas-calificacion" id="estrellas-servicio-container">
+                            {% for i in range(1, 6) %}
+                                <i class="far fa-star estrella-input" onclick="seleccionarEstrella('servicio', {{ i }})" id="estrella-servicio-{{ i }}"></i>
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" name="calificacion_servicio" id="calificacion_servicio" required>
+                    </div>
+                </div>
+                
+                <textarea name="mensaje" rows="3" placeholder="Escribe tu comentario sobre la comida, el servicio, la atención..." required></textarea>
+                <button type="submit">
+                    <i class="fas fa-paper-plane"></i> Publicar Calificación y Comentario
+                </button>
+            </form>
+        </div>
+
+        <script>
+            function seleccionarEstrella(tipo, valor) {
+                // Actualizar estrellas visualmente
+                for (let i = 1; i <= 5; i++) {
+                    const estrella = document.getElementById(`estrella-${tipo}-${i}`);
+                    if (estrella) {
+                        if (i <= valor) {
+                            estrella.classList.remove('far');
+                            estrella.classList.add('fas');
+                        } else {
+                            estrella.classList.remove('fas');
+                            estrella.classList.add('far');
+                        }
+                    }
+                }
+                
+                // Guardar valor
+                document.getElementById(`calificacion_${tipo}`).value = valor;
+            }
+        </script>
+        {% endif %}
+
+    </div>
+</div>
+
+<script>
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('mainContent');
+
+    menuToggle.addEventListener('click', function() {
+        this.classList.toggle('active');
+        sidebar.classList.toggle('active');
+        mainContent.classList.toggle('shifted');
+    });
+
+    function switchTab(tab) {
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        event.target.classList.add('active');
+
+        document.getElementById('tabChats').classList.remove('active');
+        document.getElementById('tabComentarios').classList.remove('active');
+        
+        if (tab === 'chats') {
+            document.getElementById('tabChats').classList.add('active');
+            // Hacer scroll al último mensaje en el chat
+            setTimeout(() => {
+                const chatMensajes = document.getElementById('chatMensajes');
+                if (chatMensajes) {
+                    chatMensajes.scrollTop = chatMensajes.scrollHeight;
+                }
+            }, 100);
+        } else {
+            document.getElementById('tabComentarios').classList.add('active');
+        }
+    }
+
+    // Cerrar sidebar al hacer clic fuera
+    document.addEventListener('click', function(event) {
+        if (!sidebar.contains(event.target) && !menuToggle.contains(event.target) && sidebar.classList.contains('active')) {
+            sidebar.classList.remove('active');
+            mainContent.classList.remove('shifted');
+            menuToggle.classList.remove('active');
+        }
+    });
+
+    // Auto-scroll al último mensaje cuando se carga la página
+    window.addEventListener('load', function() {
+        const chatMensajes = document.getElementById('chatMensajes');
+        if (chatMensajes) {
+            chatMensajes.scrollTop = chatMensajes.scrollHeight;
+        }
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,55 @@
+{% if restaurante.ubicacion and restaurante.ubicacion.lat and restaurante.ubicacion.lng %}
+<div class="mapa-container" style="margin: 20px 0; padding: 15px; background: white; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+    <h3 style="color: #7a3e1d; margin-bottom: 15px;">
+        <i class="fas fa-map-marked-alt"></i> Ubicación
+    </h3>
+    <div id="mapa-{{ restaurante._id }}" style="height: 300px; width: 100%; border-radius: 8px;"></div>
+</div>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBuXRHINWlyAo2sH8HrnLmg3d09kiFBicU"></script>
+<script>
+    function initMap{{ restaurante._id|replace('-', '') }}() {
+        const ubicacion = {
+            lat: {{ restaurante.ubicacion.lat }},
+            lng: {{ restaurante.ubicacion.lng }}
+        };
+        
+        const map = new google.maps.Map(document.getElementById('mapa-{{ restaurante._id }}'), {
+            zoom: 15,
+            center: ubicacion,
+            mapTypeControl: true,
+            streetViewControl: true,
+            fullscreenControl: true
+        });
+        
+        const marker = new google.maps.Marker({
+            position: ubicacion,
+            map: map,
+            title: '{{ restaurante.nombre }}',
+            animation: google.maps.Animation.DROP
+        });
+        
+        // Ventana de información
+        const infowindow = new google.maps.InfoWindow({
+            content: `
+                <div style="padding: 10px;">
+                    <h4 style="margin: 0 0 5px; color: #7a3e1d;">{{ restaurante.nombre }}</h4>
+                    <p style="margin: 0; color: #666;">{{ restaurante.direccion }}</p>
+                    {% if restaurante.telefono %}
+                    <p style="margin: 5px 0 0; color: #666;">
+                        <i class="fas fa-phone"></i> {{ restaurante.telefono }}
+                    </p>
+                    {% endif %}
+                </div>
+            `
+        });
+        
+        marker.addListener('click', function() {
+            infowindow.open(map, marker);
+        });
+    }
+    
+    // Inicializar cuando la página cargue
+    window.addEventListener('load', initMap{{ restaurante._id|replace('-', '') }});
+</script>
+{% endif %}

@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Editar Platillo - {{ platillo.nombre }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* Header con navegación */
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 25px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header-info h1 {
+            color: #2d3748;
+            font-size: 2rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-info h1 i {
+            color: #2196F3;
+        }
+
+        .header-info .platillo-nombre {
+            color: #2196F3;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+
+        .btn-volver {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 10px 20px rgba(33, 150, 243, 0.3);
+            font-size: 1.1rem;
+        }
+
+        .btn-volver:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(33, 150, 243, 0.4);
+        }
+
+        /* Info card del platillo */
+        .platillo-info-card {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(33, 150, 243, 0.3);
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 30px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .platillo-icon {
+            font-size: 4rem;
+            background: rgba(255,255,255,0.2);
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .platillo-text h2 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .platillo-text p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 500px;
+        }
+
+        .platillo-precio {
+            background: rgba(255,255,255,0.2);
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border: 2px solid white;
+        }
+
+        /* Imagen actual */
+        .imagen-actual-container {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .imagen-actual-container h3 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.3rem;
+        }
+
+        .imagen-actual-container h3 i {
+            color: #2196F3;
+        }
+
+        .imagen-actual {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .imagen-actual img {
+            max-width: 300px;
+            max-height: 200px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            border: 3px solid #2196F3;
+        }
+
+        .imagen-info {
+            color: #666;
+        }
+
+        .imagen-info i {
+            color: #2196F3;
+            margin-right: 5px;
+        }
+
+        /* Formulario */
+        .form-container {
+            background: white;
+            border-radius: 25px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #2d3748;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .form-group label i {
+            color: #2196F3;
+            margin-right: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #2196F3;
+            box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.1);
+        }
+
+        .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            resize: vertical;
+            min-height: 150px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #2196F3;
+            box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.1);
+        }
+
+        /* Subir nueva imagen */
+        .upload-section {
+            background: #f8fafc;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            border: 2px dashed #2196F3;
+        }
+
+        .upload-section h4 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .upload-section h4 i {
+            color: #2196F3;
+        }
+
+        .file-input-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .file-input-container input[type="file"] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-label {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .file-input-label:hover {
+            transform: translateY(-3px);
+        }
+
+        .file-input-label i {
+            font-size: 1.2rem;
+        }
+
+        #file-name {
+            margin-left: 15px;
+            color: #666;
+        }
+
+        #preview-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        #preview-container p {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        #preview-container img {
+            max-width: 300px;
+            max-height: 200px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            border: 3px solid #2196F3;
+        }
+
+        /* Botón guardar */
+        .btn-guardar-container {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .btn-guardar {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+            border: none;
+            padding: 20px 60px;
+            border-radius: 50px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 20px 40px rgba(33, 150, 243, 0.3);
+            transition: all 0.3s;
+        }
+
+        .btn-guardar:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 30px 60px rgba(33, 150, 243, 0.4);
+        }
+
+        .btn-guardar i {
+            font-size: 1.5rem;
+        }
+
+        /* Mensaje de ayuda */
+        .help-text {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 30px 0 20px;
+            border-left: 4px solid #2196F3;
+            color: #666;
+        }
+
+        .help-text i {
+            color: #2196F3;
+            margin-right: 8px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .platillo-info-card {
+                grid-template-columns: 1fr;
+                text-align: center;
+                padding: 30px 20px;
+            }
+
+            .platillo-icon {
+                margin: 0 auto;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .imagen-actual {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .btn-guardar {
+                width: 100%;
+                padding: 15px 30px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header-info h1 {
+                font-size: 1.5rem;
+            }
+
+            .platillo-text h2 {
+                font-size: 1.8rem;
+            }
+
+            .form-container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header con navegación -->
+        <div class="header">
+            <div class="header-info">
+                <h1>
+                    <i class="fas fa-edit"></i>
+                    Editar Platillo
+                </h1>
+                <div class="platillo-nombre">
+                    <i class="fas fa-utensils"></i> {{ platillo.nombre }}
+                </div>
+            </div>
+            <a href="{{ url_for('dashboard_restaurante') }}" class="btn-volver">
+                <i class="fas fa-arrow-left"></i>
+                Volver al Dashboard
+            </a>
+        </div>
+
+        <!-- Info card del platillo -->
+        <div class="platillo-info-card">
+            <div class="platillo-icon">
+                <i class="fas fa-utensils"></i>
+            </div>
+            <div class="platillo-text">
+                <h2>{{ platillo.nombre }}</h2>
+                <p>{{ platillo.descripcion[:150] }}{% if platillo.descripcion and platillo.descripcion|length > 150 %}...{% endif %}</p>
+            </div>
+            <div class="platillo-precio">
+                ${{ platillo.precio }}
+            </div>
+        </div>
+
+        <!-- Imagen actual (si existe) -->
+        {% if platillo.foto %}
+        <div class="imagen-actual-container">
+            <h3>
+                <i class="fas fa-image"></i>
+                Imagen Actual
+            </h3>
+            <div class="imagen-actual">
+                <img src="{{ url_for('static', filename='uploads/' + platillo.foto) }}" alt="{{ platillo.nombre }}">
+                <div class="imagen-info">
+                    <p><i class="fas fa-check-circle"></i> Esta es la imagen actual del platillo</p>
+                    <p><i class="fas fa-info-circle"></i> Si subes una nueva imagen, esta será reemplazada</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Formulario de edición -->
+        <div class="form-container">
+            <form method="POST" enctype="multipart/form-data">
+                <div class="form-grid">
+                    <!-- Columna izquierda -->
+                    <div>
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-tag"></i>
+                                Nombre del Platillo
+                            </label>
+                            <input type="text" name="nombre_platillo" value="{{ platillo.nombre }}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-dollar-sign"></i>
+                                Precio
+                            </label>
+                            <input type="text" name="precio" value="{{ platillo.precio }}" required>
+                        </div>
+                    </div>
+
+                    <!-- Columna derecha -->
+                    <div>
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-align-left"></i>
+                                Descripción
+                            </label>
+                            <textarea name="descripcion_platillo" rows="5" required>{{ platillo.descripcion }}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección para subir nueva imagen -->
+                <div class="upload-section">
+                    <h4>
+                        <i class="fas fa-camera"></i>
+                        Cambiar Imagen del Platillo
+                    </h4>
+                    <div class="file-input-container">
+                        <input type="file" name="foto" accept="image/*" id="foto-input" onchange="previewImagen(this)">
+                        <span class="file-input-label">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            Seleccionar nueva imagen
+                        </span>
+                        <span id="file-name">Ningún archivo seleccionado</span>
+                    </div>
+                    <div id="preview-container" style="display: none;">
+                        <p>Vista previa de la nueva imagen:</p>
+                        <img id="imagen-preview" src="#" alt="Vista previa">
+                    </div>
+                </div>
+
+                <!-- Mensaje de ayuda -->
+                <div class="help-text">
+                    <i class="fas fa-info-circle"></i>
+                    Los cambios se guardarán inmediatamente. La imagen anterior será reemplazada por la nueva.
+                </div>
+
+                <!-- Botón guardar -->
+                <div class="btn-guardar-container">
+                    <button type="submit" class="btn-guardar">
+                        <i class="fas fa-save"></i>
+                        Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function previewImagen(input) {
+            const fileName = document.getElementById('file-name');
+            const preview = document.getElementById('preview-container');
+            const img = document.getElementById('imagen-preview');
+            
+            if (input.files && input.files[0]) {
+                // Mostrar nombre del archivo
+                fileName.textContent = input.files[0].name;
+                
+                // Previsualizar imagen
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    img.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                fileName.textContent = 'Ningún archivo seleccionado';
+                preview.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

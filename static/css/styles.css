@@ -1,0 +1,471 @@
+/* RESET BÁSICO */
+* {
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* BODY */
+html, body {
+    height: 100%;
+}
+
+body {
+    background: linear-gradient(135deg, #f7e7c6, #f3d9a4);
+    display: flex;
+    justify-content: center; /* solo centra horizontal */
+    align-items: flex-start; /* ya NO centra vertical */
+    padding-top: 40px; /* espacio arriba */
+}
+
+/* CONTENEDOR PRINCIPAL */
+.chat-container {
+    background-color: #ffffff;
+    width: 420px;
+    max-width: 95%;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    padding: 20px;
+}
+
+/* TÍTULO */
+h1 {
+    text-align: center;
+    color: #7a3e1d;
+    margin-bottom: 10px;
+}
+
+/* DESCRIPCIÓN */
+.descripcion {
+    text-align: center;
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+/* INPUT + BOTÓN */
+.input-group {
+    display: flex;
+    gap: 10px;
+}
+
+input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+}
+
+input:focus {
+    outline: none;
+    border-color: #7a3e1d;
+}
+
+/* BOTÓN */
+button {
+    background-color: #7a3e1d;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #5e2f15;
+}
+
+/* RESPUESTA IA */
+.respuesta {
+    margin-top: 20px;
+    background-color: #f9f4ec;
+    padding: 15px;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #333;
+    min-height: 80px;
+    white-space: pre-line;
+}
+
+/* MAPA */
+#map {
+    width: 100%;
+    height: 300px;
+    margin-top: 15px;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* FOOTER */
+.footer {
+    margin-top: 15px;
+    text-align: center;
+    font-size: 12px;
+    color: #777;
+}
+/* ======================
+   LANDING PAGE
+====================== */
+
+.landing-body {
+    background: #fffaf0;
+    display: block;
+}
+
+/* HERO */
+.hero {
+    background: linear-gradient(
+        rgba(122, 62, 29, 0.75),
+        rgba(122, 62, 29, 0.75)
+    ),
+    url("https://images.unsplash.com/photo-1600891964599-f61ba0e24092") center/cover;
+    color: white;
+    padding: 100px 20px;
+    text-align: center;
+}
+
+.hero-content {
+    max-width: 700px;
+    margin: auto;
+}
+
+.hero h1 {
+    font-size: 40px;
+    margin-bottom: 15px;
+}
+
+.hero p {
+    font-size: 18px;
+    margin-bottom: 30px;
+}
+
+/* BOTONES */
+.btn-principal,
+.btn-secundario {
+    display: inline-block;
+    padding: 12px 25px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.btn-principal {
+    background: #f3d9a4;
+    color: #7a3e1d;
+}
+
+.btn-principal:hover {
+    background: #ffe4b5;
+}
+
+.btn-secundario {
+    background: #7a3e1d;
+    color: white;
+}
+
+.btn-secundario:hover {
+    background: #5e2f15;
+}
+
+/* PLATILLOS */
+.platillos {
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.platillos h2 {
+    color: #7a3e1d;
+    margin-bottom: 40px;
+}
+
+.grid-platillos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    max-width: 900px;
+    margin: auto;
+}
+
+.card {
+    background: #fff;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+.card h3 {
+    color: #7a3e1d;
+    margin-bottom: 10px;
+}
+
+/* CTA */
+.cta {
+    background: #f9f4ec;
+    padding: 50px 20px;
+    text-align: center;
+}
+
+.cta h2 {
+    color: #7a3e1d;
+    margin-bottom: 10px;
+}
+
+/* FOOTER */
+.landing-footer {
+    background: #7a3e1d;
+    color: white;
+    text-align: center;
+    padding: 15px;
+    font-size: 13px;
+}
+.cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card button {
+    margin-top: 10px;
+    width: 100%;
+}
+/* ==========================
+   FIX TÍTULO ARRIBA CLIENTE
+========================== */
+
+.restaurantes-page {
+    display: block !important;
+}
+
+.restaurantes-page body {
+    display: block;
+}
+
+body.restaurantes-page {
+    display: block;
+    justify-content: normal;
+    align-items: normal;
+}
+/* ==========================
+   DETALLE RESTAURANTE
+========================== */
+
+.detalle-restaurante {
+    max-width: 900px;
+    margin: 60px auto;
+    padding: 30px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+}
+
+/* Título grande */
+.detalle-restaurante h1 {
+    font-size: 36px;
+    color: #7a3e1d;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+/* Descripción mejorada */
+.detalle-restaurante .descripcion {
+    font-size: 16px;
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+/* Sección de información */
+.info-restaurante {
+    background: #f9f4ec;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 25px;
+}
+
+.info-restaurante p {
+    margin-bottom: 10px;
+    font-size: 15px;
+}
+
+/* Botón elegante */
+.btn-volver {
+    display: inline-block;
+    padding: 12px 25px;
+    background-color: #7a3e1d;
+    color: white;
+    text-decoration: none;
+    border-radius: 25px;
+    font-weight: bold;
+    transition: 0.3s ease;
+}
+
+.btn-volver:hover {
+    background-color: #5e2f15;
+    transform: translateY(-2px);
+}
+
+/* Centrar botón */
+.detalle-restaurante .boton-container {
+    text-align: center;
+    margin-top: 20px;
+}
+.restaurantes-page .boton-container {
+    text-align: center;
+    margin-top: 40px;
+}
+.chat-container .boton-container {
+    margin-top: 25px;
+    text-align: center;
+}
+.btn-volver {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #7a3e1d;
+    color: white;
+    text-decoration: none;
+    border-radius: 25px;
+    font-weight: bold;
+    transition: 0.3s ease;
+}
+
+.btn-volver:hover {
+    background-color: #5e2f15;
+    transform: translateY(-2px);
+}
+/* ==========================
+   FORMULARIOS RESTAURANTE
+========================== */
+
+.form-group {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    margin-bottom: 6px;
+    font-weight: bold;
+    color: #7a3e1d;
+}
+
+.form-group input,
+.form-group textarea {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #7a3e1d;
+}
+
+.detalle-restaurante h2 {
+    margin-bottom: 20px;
+    color: #7a3e1d;
+}
+/* =========================
+   CONTENEDOR GENERAL
+========================= */
+.detalle-container {
+    max-width: 900px;
+    margin: auto;
+    padding: 20px;
+}
+
+/* =========================
+   TARJETA DEL RESTAURANTE
+========================= */
+.card-restaurante {
+    background: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    padding: 25px;
+    margin-bottom: 30px;
+    transition: transform 0.3s ease;
+}
+
+.card-restaurante:hover {
+    transform: translateY(-5px);
+}
+
+/* =========================
+   INFORMACIÓN GENERAL
+========================= */
+.info-local {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    font-size: 15px;
+}
+
+.info-local p {
+    margin: 5px 0;
+}
+
+/* =========================
+   PLATILLOS
+========================= */
+.card-platillo {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+/* IMAGEN MÁS PEQUEÑA */
+.img-platillo {
+    width: 120px;   /* 🔥 aquí ajustas el tamaño */
+    height: 120px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 2px solid #eee;
+}
+
+/* TEXTO DEL PLATILLO */
+.info-platillo {
+    flex: 1;
+}
+
+.info-platillo h3 {
+    margin: 0;
+    color: #333;
+}
+
+.precio {
+    font-weight: bold;
+    color: #28a745;
+    margin-top: 5px;
+}
+.img-platillo {
+    width: 100px;      /* ajusta tamaño */
+    height: auto;
+    border-radius: 10px;
+    margin-top: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
