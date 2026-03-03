@@ -60,61 +60,27 @@ except TypeError as e:
 # =========================
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-print("="*60)
-print("🔍 DIAGNÓSTICO DE OPENAI")
-print("="*60)
-
-# Verificar si la variable existe
 if not OPENAI_API_KEY:
-    print("❌ ERROR CRÍTICO: OPENAI_API_KEY no está configurada")
-    print("   Ve a Render → Environment → Agrega OPENAI_API_KEY")
+    print("❌ ERROR: OPENAI_API_KEY no configurada")
     client = None
 else:
-    print(f"✅ OPENAI_API_KEY está configurada")
-    print(f"   Longitud: {len(OPENAI_API_KEY)} caracteres")
-    print(f"   Formato: {'✅ Comienza con sk-' if OPENAI_API_KEY.startswith('sk-') else '❌ NO comienza con sk-'}")
-    print(f"   Primeros 10 chars: {OPENAI_API_KEY[:10]}...")
-    
     try:
-        print("🔄 Intentando crear cliente de OpenAI...")
-        from openai import OpenAI
-        client = OpenAI(api_key=OPENAI_API_KEY)
-        print("✅ Cliente OpenAI creado exitosamente")
+        import openai
+        openai.api_key = OPENAI_API_KEY
+        client = openai
+        print("✅ OpenAI configurado correctamente (API legacy)")
         
-        # Hacer una llamada de prueba MUY simple
-        print("🔄 Probando conexión con OpenAI...")
-        try:
-            test_response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[{"role": "user", "content": "Hola"}],
-                max_tokens=5,
-                temperature=0
-            )
-            print(f"✅ CONEXIÓN EXITOSA - Respuesta: {test_response.choices[0].message.content}")
-        except Exception as e:
-            print(f"❌ La conexión falló en la prueba: {type(e).__name__}")
-            print(f"❌ Detalle: {str(e)}")
-            
-            # Intentar con otro modelo como fallback
-            try:
-                print("🔄 Intentando con modelo alternativo gpt-3.5-turbo-instruct...")
-                test_response = client.completions.create(
-                    model="gpt-3.5-turbo-instruct",
-                    prompt="Hola",
-                    max_tokens=5
-                )
-                print(f"✅ CONEXIÓN EXITOSA con modelo alternativo")
-            except Exception as e2:
-                print(f"❌ También falló el modelo alternativo: {e2}")
-                client = None
-                
+        # Prueba simple
+        openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": "test"}],
+            max_tokens=5
+        )
+        print("✅ Conexión con OpenAI verificada")
+        
     except Exception as e:
-        print(f"❌ ERROR FATAL creando cliente: {type(e).__name__}")
-        print(f"❌ Detalle: {str(e)}")
+        print(f"❌ Error configurando OpenAI: {e}")
         client = None
-
-print("="*60)
-
 
 # =========================
 # MONGODB ATLAS (USANDO VARIABLE DE ENTORNO)
