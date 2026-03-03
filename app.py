@@ -35,7 +35,13 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_PLACES_API_KEY")
 if not GOOGLE_API_KEY:
     print("⚠️ ADVERTENCIA: GOOGLE_PLACES_API_KEY no configurada. El mapa podría no funcionar.")
 
-client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
+try:
+    client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
+    print("✅ OpenAI client inicializado correctamente")
+except TypeError as e:
+    print(f"⚠️ Error con la versión de OpenAI: {e}")
+    print("Intentando con configuración alternativa...")
+    client = None
 
 # =========================
 # MONGODB ATLAS (USANDO VARIABLE DE ENTORNO)
