@@ -60,27 +60,40 @@ except TypeError as e:
 # =========================
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
+print("="*60)
+print("🔍 CONFIGURANDO OPENAI (API LEGACY)")
+print("="*60)
+
 if not OPENAI_API_KEY:
-    print("❌ ERROR: OPENAI_API_KEY no configurada")
+    print("❌ OPENAI_API_KEY no está configurada")
     client = None
 else:
     try:
         import openai
         openai.api_key = OPENAI_API_KEY
-        client = openai
-        print("✅ OpenAI configurado correctamente (API legacy)")
+        client = openai  # El cliente es la biblioteca misma
+        print("✅ OpenAI configurado correctamente (versión legacy)")
         
-        # Prueba simple
-        openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": "test"}],
-            max_tokens=5
-        )
-        print("✅ Conexión con OpenAI verificada")
-        
+        # Probar la conexión
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": "Hola"}],
+                max_tokens=5
+            )
+            print("✅ Conexión con OpenAI verificada")
+        except Exception as e:
+            print(f"⚠️ OpenAI configurado pero falló la prueba: {e}")
+            
+    except ImportError as e:
+        print(f"❌ Error importando openai: {e}")
+        print("   Asegúrate de tener instalado: pip install openai==0.28.0")
+        client = None
     except Exception as e:
         print(f"❌ Error configurando OpenAI: {e}")
         client = None
+
+print("="*60)
 
 # =========================
 # MONGODB ATLAS (USANDO VARIABLE DE ENTORNO)
