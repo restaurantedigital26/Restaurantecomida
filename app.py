@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 from flask import send_from_directory, abort
-from openai import OpenAI
+import openai 
 from pymongo import MongoClient
 import requests, os
 from bson.objectid import ObjectId
@@ -41,22 +41,13 @@ except Exception as e:
 # =========================
 # API KEYS
 # =========================
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_PLACES_API_KEY")
 
 if not GOOGLE_API_KEY:
     print("⚠️ ADVERTENCIA: GOOGLE_PLACES_API_KEY no configurada. El mapa podría no funcionar.")
 
-try:
-    client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
-    print("✅ OpenAI client inicializado correctamente")
-except TypeError as e:
-    print(f"⚠️ Error con la versión de OpenAI: {e}")
-    print("Intentando con configuración alternativa...")
-    client = None
-
 # =========================
-# OPENAI - DIAGNÓSTICO COMPLETO
+# OPENAI
 # =========================
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
@@ -65,20 +56,21 @@ print("🔍 CONFIGURANDO OPENAI (API LEGACY)")
 print("="*60)
 
 if not OPENAI_API_KEY:
-    print("❌ OPENAI_API_KEY no está configurada")
+    print("❌ ERROR: OPENAI_API_KEY no configurada")
     client = None
 else:
     try:
         import openai
         openai.api_key = OPENAI_API_KEY
-        client = openai  # El cliente es la biblioteca misma
+        # En la versión legacy, el cliente es la biblioteca misma
+        client = openai
         print("✅ OpenAI configurado correctamente (versión legacy)")
         
         # Probar la conexión
         try:
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
-                messages=[{"role": "user", "content": "Hola"}],
+                messages=[{"role": "user", "content": "test"}],
                 max_tokens=5
             )
             print("✅ Conexión con OpenAI verificada")
@@ -87,7 +79,7 @@ else:
             
     except ImportError as e:
         print(f"❌ Error importando openai: {e}")
-        print("   Asegúrate de tener instalado: pip install openai==0.28.0")
+        print("   Verifica que openai esté instalado: pip install openai==0.28.0")
         client = None
     except Exception as e:
         print(f"❌ Error configurando OpenAI: {e}")
