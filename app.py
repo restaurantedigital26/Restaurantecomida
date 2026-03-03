@@ -29,19 +29,41 @@ print(f"✅ Carpeta de uploads lista: {UPLOAD_FOLDER}")
 # =========================
 # API KEYS
 # =========================
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_PLACES_API_KEY")
 
 if not GOOGLE_API_KEY:
     print("⚠️ ADVERTENCIA: GOOGLE_PLACES_API_KEY no configurada. El mapa podría no funcionar.")
 
-try:
-    client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
-    print("✅ OpenAI client inicializado correctamente")
-except TypeError as e:
-    print(f"⚠️ Error con la versión de OpenAI: {e}")
-    print("Intentando con configuración alternativa...")
+# =========================
+# OPENAI - CONFIGURACIÓN ROBUSTA
+# =========================
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+if not OPENAI_API_KEY:
+    print("⚠️ ADVERTENCIA: OPENAI_API_KEY no configurada")
     client = None
+else:
+    try:
+        # Intentar con la configuración estándar
+        client = OpenAI(api_key=OPENAI_API_KEY)
+        # Probar la conexión
+        client.models.list()
+        print("✅ OpenAI client inicializado correctamente")
+    except TypeError as e:
+        print(f"⚠️ Error con versión de OpenAI: {e}")
+        print("Intentando configuración alternativa...")
+        try:
+            # Configuración alternativa para versiones antiguas
+            import openai
+            openai.api_key = OPENAI_API_KEY
+            client = openai
+            print("✅ OpenAI configurado con API legacy")
+        except Exception as e2:
+            print(f"❌ Error crítico con OpenAI: {e2}")
+            client = None
+    except Exception as e:
+        print(f"❌ Error general con OpenAI: {e}")
+        client = None
 
 # =========================
 # MONGODB ATLAS (USANDO VARIABLE DE ENTORNO)
