@@ -345,9 +345,9 @@ document.addEventListener('DOMContentLoaded', initMap);
     <div style="margin-bottom: 10px;">
         <p>Imagen actual:</p>
         <img src="{{ url_for('static', filename='uploads/restaurantes/' + restaurante.imagen_restaurante) }}" 
-             style="max-width: 200px; max-height: 150px; border-radius: 8px; border: 1px solid #ddd;">
+             style="max-width: 200px; max-height: 150px; border-radius: 8px;">
     </div>
-    {% endif %}
+{% endif %}
     
     <input type="file" name="imagen_restaurante" accept="image/*" onchange="previewImagen(this)">
     <div id="preview-container" style="margin-top: 10px; display: none;">

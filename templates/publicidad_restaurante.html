@@ -181,8 +181,9 @@
             {% for pub in publicaciones %}
             <div class="publicacion-card {% if pub.activa %}activa{% else %}inactiva{% endif %}">
                 {% if pub.imagen %}
-                <img src="{{ url_for('uploaded_file', filename='publicidad/' + pub.imagen) }}" class="publicacion-img">
-                {% endif %}
+    <img src="{{ url_for('static', filename='uploads/publicidad/' + pub.imagen) }}" 
+         alt="{{ pub.titulo }}" class="publicidad-img">
+{% endif %}
                 <div class="publicacion-tipo tipo-{{ pub.tipo }}">
                     {{ pub.tipo|upper }}
                 </div>

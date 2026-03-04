@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 from flask import send_from_directory, abort
-import openai 
+import openai  # type: ignore
 from pymongo import MongoClient
 import requests, os
 from bson.objectid import ObjectId
@@ -17,15 +17,16 @@ import sys
 app = Flask(__name__, static_folder="static", template_folder="templates")
 app.secret_key = os.getenv("SECRET_KEY", "clave_super_secreta_123")
 
-# Configurar carpeta de uploads
-UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", "static/uploads")
-print(f"📁 UPLOAD_FOLDER desde entorno: {UPLOAD_FOLDER}")
+# Configurar carpeta de uploads PERSISTENTE
+UPLOAD_FOLDER = "static/uploads"
+print(f"📁 UPLOAD_FOLDER configurado como: {UPLOAD_FOLDER}")
 
 # Crear carpetas con verificación
 try:
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
     os.makedirs(os.path.join(UPLOAD_FOLDER, "restaurantes"), exist_ok=True)
     os.makedirs(os.path.join(UPLOAD_FOLDER, "publicidad"), exist_ok=True)
+    os.makedirs(os.path.join(UPLOAD_FOLDER, "platillos"), exist_ok=True)
     print(f"✅ Carpetas de uploads creadas/verificadas en: {UPLOAD_FOLDER}")
     
     # Verificar permisos de escritura
@@ -60,7 +61,6 @@ if not OPENAI_API_KEY:
     client = None
 else:
     try:
-        import openai
         openai.api_key = OPENAI_API_KEY
         # En la versión legacy, el cliente es la biblioteca misma
         client = openai
@@ -785,7 +785,7 @@ def admin_crear_restaurante():
         latitud = request.form.get("latitud")
         longitud = request.form.get("longitud")
         
-        # ===== PROCESAR IMAGEN =====
+        # ===== PROCESAR IMAGEN (PERSISTENTE) =====
         imagen_restaurante = request.files.get("imagen_restaurante")
         imagen_filename = None
         
@@ -799,20 +799,15 @@ def admin_crear_restaurante():
             timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
             nombre_unico = f"rest_{timestamp}_{filename}"
             
-            # Definir ruta completa
-            upload_path = os.path.join(UPLOAD_FOLDER, "restaurantes")
+            # Guardar en static/uploads/restaurantes (PERSISTENTE)
+            upload_path = os.path.join("static/uploads", "restaurantes")
             file_path = os.path.join(upload_path, nombre_unico)
             
-            print(f"📁 Guardando en: {file_path}")
-            
             try:
-                # Asegurar que la carpeta existe
                 os.makedirs(upload_path, exist_ok=True)
-                
-                # Guardar archivo
                 imagen_restaurante.save(file_path)
                 imagen_filename = nombre_unico
-                print(f"✅ Imagen guardada correctamente: {nombre_unico}")
+                print(f"✅ Imagen guardada en: {file_path}")
                 
                 # Verificar que el archivo existe
                 if os.path.exists(file_path):
@@ -919,7 +914,7 @@ def admin_editar_restaurante(restaurante_id):
         latitud = request.form.get("latitud")
         longitud = request.form.get("longitud")
         
-        # ===== PROCESAR IMAGEN =====
+        # ===== PROCESAR IMAGEN (PERSISTENTE) =====
         imagen_restaurante = request.files.get("imagen_restaurante")
         imagen_filename = restaurante.get("imagen_restaurante")  # Mantener la actual
         
@@ -936,17 +931,14 @@ def admin_editar_restaurante(restaurante_id):
             timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
             nombre_unico = f"rest_{timestamp}_{filename}"
             
-            # Definir ruta completa
-            upload_path = os.path.join(UPLOAD_FOLDER, "restaurantes")
+            # Guardar en static/uploads/restaurantes (PERSISTENTE)
+            upload_path = os.path.join("static/uploads", "restaurantes")
             file_path = os.path.join(upload_path, nombre_unico)
             
             print(f"📁 Intentando guardar en: {file_path}")
             
             try:
-                # Asegurar que la carpeta existe
                 os.makedirs(upload_path, exist_ok=True)
-                
-                # Guardar archivo
                 imagen_restaurante.save(file_path)
                 imagen_filename = nombre_unico
                 print(f"✅ Imagen guardada correctamente: {nombre_unico}")
@@ -1133,7 +1125,7 @@ def dashboard_admin():
         todos_comentarios=todos_comentarios,
         chats_lista=chats_lista,
         restaurantes_lista=lista_restaurantes[:10], 
-   )
+    )
 
 # =========================
 # ADMIN - ELIMINAR CLIENTE
@@ -1394,7 +1386,7 @@ def debug_imagenes():
     }
     
     # Explorar carpetas
-    for carpeta in ['publicidad', 'restaurantes']:
+    for carpeta in ['publicidad', 'restaurantes', 'platillos']:
         ruta = os.path.join(UPLOAD_FOLDER, carpeta)
         if os.path.exists(ruta):
             try:
@@ -1832,9 +1824,15 @@ def subir_menu():
 
         if foto and foto.filename != "":
             filename = secure_filename(foto.filename)
-            foto_path = os.path.join(UPLOAD_FOLDER, filename)
-            foto.save(foto_path)
-            foto_filename = filename
+            timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+            nombre_unico = f"platillo_{timestamp}_{filename}"
+            
+            # Guardar en static/uploads/platillos (PERSISTENTE)
+            upload_path = os.path.join("static/uploads", "platillos")
+            file_path = os.path.join(upload_path, nombre_unico)
+            os.makedirs(upload_path, exist_ok=True)
+            foto.save(file_path)
+            foto_filename = nombre_unico
 
         if nombre_platillo and precio:
             restaurantes.update_one(
@@ -1893,9 +1891,15 @@ def editar_platillo(restaurante_id, platillo_index):
         foto = request.files.get("foto")
         if foto and foto.filename != "":
             filename = secure_filename(foto.filename)
-            foto_path = os.path.join(UPLOAD_FOLDER, filename)
-            foto.save(foto_path)
-            platillo["foto"] = filename
+            timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+            nombre_unico = f"platillo_{timestamp}_{filename}"
+            
+            # Guardar en static/uploads/platillos (PERSISTENTE)
+            upload_path = os.path.join("static/uploads", "platillos")
+            file_path = os.path.join(upload_path, nombre_unico)
+            os.makedirs(upload_path, exist_ok=True)
+            foto.save(file_path)
+            platillo["foto"] = nombre_unico
 
         platillo["nombre"] = nombre
         platillo["precio"] = precio
@@ -2032,30 +2036,32 @@ def gestionar_publicidad():
         fecha_fin = request.form.get("fecha_fin")
         descuento = request.form.get("descuento")
         
-        # Subir imagen si existe
+        # Subir imagen si existe (PERSISTENTE)
         imagen = request.files.get("imagen")
         imagen_filename = None
         if imagen and imagen.filename != "":
             filename = secure_filename(imagen.filename)
-            imagen_path = os.path.join(UPLOAD_FOLDER, "publicidad", filename)
-            os.makedirs(os.path.dirname(imagen_path), exist_ok=True)
-            imagen.save(imagen_path)
+            upload_path = os.path.join("static/uploads", "publicidad")
+            file_path = os.path.join(upload_path, filename)
+            os.makedirs(upload_path, exist_ok=True)
+            imagen.save(file_path)
             imagen_filename = filename
+            print(f"✅ Imagen de publicidad guardada en: {file_path}")
 
         publicacion = {
-    "restaurante_id": restaurante["_id"],
-    "restaurante_nombre": restaurante["nombre"],
-    "titulo": titulo,
-    "descripcion": descripcion,
-    "tipo": tipo,
-    "fecha_inicio": datetime.datetime.strptime(fecha_inicio, "%Y-%m-%d") if fecha_inicio else None,
-    "fecha_fin": datetime.datetime.strptime(fecha_fin, "%Y-%m-%d") if fecha_fin else None,
-    "descuento": descuento,
-    "imagen": imagen_filename,
-    "activa": True,  # ← IMPORTANTE: debe ser True
-    "fecha_creacion": datetime.datetime.now(datetime.UTC),
-    "vistas": 0
-}
+            "restaurante_id": restaurante["_id"],
+            "restaurante_nombre": restaurante["nombre"],
+            "titulo": titulo,
+            "descripcion": descripcion,
+            "tipo": tipo,
+            "fecha_inicio": datetime.datetime.strptime(fecha_inicio, "%Y-%m-%d") if fecha_inicio else None,
+            "fecha_fin": datetime.datetime.strptime(fecha_fin, "%Y-%m-%d") if fecha_fin else None,
+            "descuento": descuento,
+            "imagen": imagen_filename,
+            "activa": True,
+            "fecha_creacion": datetime.datetime.now(datetime.UTC),
+            "vistas": 0
+        }
         
         publicidad.insert_one(publicacion)
         return redirect(url_for("dashboard_restaurante"))
@@ -2306,17 +2312,14 @@ INSTRUCCIONES IMPORTANTES:
 
         # 5. Llamar a OpenAI (usando tu misma API)
         response = openai.ChatCompletion.create(
-    model="gpt-3.5-turbo",
-    messages=mensajes_api,
-    temperature=0.7,
-    max_tokens=300
-)
+            model="gpt-3.5-turbo",
+            messages=mensajes_api,
+            temperature=0.7,
+            max_tokens=300
+        )
 
         respuesta_ia = response.choices[0].message.content
 
-        # 6. Guardar la conversación (opcional)
-        # Aquí podrías guardar el historial en BD si quieres
-        
         return jsonify({
             "respuesta": respuesta_ia,
             "platillo": platillo["nombre"],

@@ -269,10 +269,9 @@
             </div>
 
             {% if platillo.foto %}
-            <div class="platillo-imagen">
-                <img src="{{ url_for('static', filename='uploads/' + platillo.foto) }}">
-            </div>
-            {% endif %}
+    <img src="{{ url_for('static', filename='uploads/platillos/' + platillo.foto) }}" 
+         alt="{{ platillo.nombre }}" class="platillo-img">
+{% endif %}
 
             <div class="platillo-descripcion">
                 <h3>Descripción:</h3>
