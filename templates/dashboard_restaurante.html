@@ -686,10 +686,8 @@
                 <div class="platillo-card-scroll" onclick="window.location.href='{{ url_for('detalle_platillo_restaurante', restaurante_id=restaurante._id, platillo_index=loop.index0) }}'">
                     <h3>{{ platillo.nombre }}</h3>
                     {% if platillo.foto %}
-    <img src="{{ url_for('static', filename='uploads/platillos/' + platillo.foto) }}" 
-         alt="{{ platillo.nombre }}" 
-         class="platillo-img">
-{% endif %}
+                        <img src="{{ url_for('static', filename='uploads/' + platillo.foto) }}" alt="{{ platillo.nombre }}">
+                    {% endif %}
                     <p>{{ platillo.descripcion[:100] }}{% if platillo.descripcion and platillo.descripcion|length > 100 %}...{% endif %}</p>
                     <p><strong>Precio:</strong> ${{ platillo.precio }}</p>
                     <div style="margin-top: 10px; color: #4CAF50;">

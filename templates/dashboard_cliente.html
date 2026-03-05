@@ -261,9 +261,9 @@
                     </div>
                     
                     {% if pub.imagen %}
-    <img src="{{ url_for('static', filename='uploads/publicidad/' + pub.imagen) }}" 
-         alt="{{ pub.titulo }}" class="publicidad-img">
-{% endif %}
+                    <img src="{{ url_for('static', filename='uploads/publicidad/' + pub.imagen) }}" 
+                         alt="{{ pub.titulo }}" class="publicidad-img">
+                    {% endif %}
                     
                     <div class="publicidad-contenido">
                         <div class="publicidad-restaurante">

@@ -313,15 +313,6 @@
             </a>
         </div>
 
-        <!-- Después del header, antes de la información -->
-{% if restaurante.imagen_restaurante %}
-<div style="text-align: center; margin: 20px 0;">
-    <img src="{{ url_for('static', filename='uploads/restaurantes/' + restaurante.imagen_restaurante) }}" 
-         alt="{{ restaurante.nombre }}" 
-         style="max-width: 100%; height: auto; border-radius: 10px;">
-</div>
-{% endif %}
-
         <!-- INFORMACIÓN DEL RESTAURANTE -->
         <div class="info-restaurante">
             <div class="info-item">
@@ -400,18 +391,25 @@
         <!-- MENÚ -->
         <h2 class="menu-titulo"><i class="fas fa-utensils"></i> Menú</h2>
         {% if restaurante.menu %}
-    {% for platillo in restaurante.menu %}
-        <div class="platillo-card">
-            {% if platillo.foto %}
-                <img src="{{ url_for('static', filename='uploads/platillos/' + platillo.foto) }}" 
-                     alt="{{ platillo.nombre }}">
-            {% endif %}
-            <h3>{{ platillo.nombre }}</h3>
-            <p>{{ platillo.descripcion }}</p>
-            <p class="precio">${{ platillo.precio }}</p>
-        </div>
-    {% endfor %}
-{% endif %}
+            <div class="menu-scroll-container">
+                <div class="menu-scroll">
+                    {% for platillo in restaurante.menu %}
+                    <div class="platillo-card">
+                        {% if platillo.foto %}
+                        <img src="{{ url_for('static', filename='uploads/' + platillo.foto) }}" alt="{{ platillo.nombre }}">
+                        {% endif %}
+                        <div class="platillo-info">
+                            <h3>{{ platillo.nombre }}</h3>
+                            <p>{{ platillo.descripcion[:60] }}{% if platillo.descripcion and platillo.descripcion|length > 60 %}...{% endif %}</p>
+                            <p class="platillo-precio">${{ platillo.precio }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% else %}
+            <p>Sin platillos</p>
+        {% endif %}
 
         <!-- COMENTARIOS -->
         <div class="comentarios-section">
