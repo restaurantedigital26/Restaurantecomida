@@ -21,23 +21,12 @@ app.secret_key = os.getenv("SECRET_KEY", "clave_super_secreta_123")
 UPLOAD_FOLDER = "static/uploads"
 print(f"📁 UPLOAD_FOLDER configurado como: {UPLOAD_FOLDER}")
 
-# Crear carpetas con verificación
-try:
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    os.makedirs(os.path.join(UPLOAD_FOLDER, "restaurantes"), exist_ok=True)
-    os.makedirs(os.path.join(UPLOAD_FOLDER, "publicidad"), exist_ok=True)
-    os.makedirs(os.path.join(UPLOAD_FOLDER, "platillos"), exist_ok=True)
-    print(f"✅ Carpetas de uploads creadas/verificadas en: {UPLOAD_FOLDER}")
-    
-    # Verificar permisos de escritura
-    test_file = os.path.join(UPLOAD_FOLDER, "restaurantes", "test_write.txt")
-    with open(test_file, 'w') as f:
-        f.write("test")
-    os.remove(test_file)
-    print("✅ Permisos de escritura verificados")
-    
-except Exception as e:
-    print(f"❌ Error creando carpetas de uploads: {e}")
+# ===== NUEVO: Crear subcarpetas necesarias =====
+os.makedirs(os.path.join(UPLOAD_FOLDER, "restaurantes"), exist_ok=True)
+os.makedirs(os.path.join(UPLOAD_FOLDER, "publicidad"), exist_ok=True)
+
+print(f"✅ Carpeta de uploads lista: {UPLOAD_FOLDER}")
+print(f"✅ Subcarpeta restaurantes: {os.path.join(UPLOAD_FOLDER, 'restaurantes')}")
 
 # =========================
 # API KEYS
@@ -785,7 +774,7 @@ def admin_crear_restaurante():
         latitud = request.form.get("latitud")
         longitud = request.form.get("longitud")
         
-        # ===== PROCESAR IMAGEN (PERSISTENTE) =====
+        # ===== PROCESAR IMAGEN =====
         imagen_restaurante = request.files.get("imagen_restaurante")
         imagen_filename = None
         
@@ -799,15 +788,20 @@ def admin_crear_restaurante():
             timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
             nombre_unico = f"rest_{timestamp}_{filename}"
             
-            # Guardar en static/uploads/restaurantes (PERSISTENTE)
-            upload_path = os.path.join("static/uploads", "restaurantes")
+            # Definir ruta completa
+            upload_path = os.path.join(UPLOAD_FOLDER, "restaurantes")
             file_path = os.path.join(upload_path, nombre_unico)
             
+            print(f"📁 Guardando en: {file_path}")
+            
             try:
+                # Asegurar que la carpeta existe
                 os.makedirs(upload_path, exist_ok=True)
+                
+                # Guardar archivo
                 imagen_restaurante.save(file_path)
                 imagen_filename = nombre_unico
-                print(f"✅ Imagen guardada en: {file_path}")
+                print(f"✅ Imagen guardada correctamente: {nombre_unico}")
                 
                 # Verificar que el archivo existe
                 if os.path.exists(file_path):
@@ -914,7 +908,7 @@ def admin_editar_restaurante(restaurante_id):
         latitud = request.form.get("latitud")
         longitud = request.form.get("longitud")
         
-        # ===== PROCESAR IMAGEN (PERSISTENTE) =====
+        # ===== PROCESAR IMAGEN =====
         imagen_restaurante = request.files.get("imagen_restaurante")
         imagen_filename = restaurante.get("imagen_restaurante")  # Mantener la actual
         
@@ -931,14 +925,17 @@ def admin_editar_restaurante(restaurante_id):
             timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
             nombre_unico = f"rest_{timestamp}_{filename}"
             
-            # Guardar en static/uploads/restaurantes (PERSISTENTE)
-            upload_path = os.path.join("static/uploads", "restaurantes")
+            # Definir ruta completa
+            upload_path = os.path.join(UPLOAD_FOLDER, "restaurantes")
             file_path = os.path.join(upload_path, nombre_unico)
             
             print(f"📁 Intentando guardar en: {file_path}")
             
             try:
+                # Asegurar que la carpeta existe
                 os.makedirs(upload_path, exist_ok=True)
+                
+                # Guardar archivo
                 imagen_restaurante.save(file_path)
                 imagen_filename = nombre_unico
                 print(f"✅ Imagen guardada correctamente: {nombre_unico}")
@@ -1375,28 +1372,29 @@ def debug_ver_publicidad():
 # =========================
 # DEBUG - VER IMÁGENES
 # =========================
-@app.route('/debug/imagenes')
+@app.route("/debug/imagenes")
 def debug_imagenes():
-    """Muestra todas las imágenes guardadas en el servidor"""
+    if session.get("tipo") != "admin":
+        return redirect(url_for("login"))
+    
     import os
+    from pathlib import Path
+    
+    carpeta = os.path.join(UPLOAD_FOLDER, "restaurantes")
     resultado = {
-        "upload_folder": UPLOAD_FOLDER,
-        "carpeta_existe": os.path.exists(UPLOAD_FOLDER),
-        "contenido": {}
+        "carpeta": carpeta,
+        "existe": os.path.exists(carpeta),
+        "archivos": []
     }
     
-    # Explorar carpetas
-    for carpeta in ['publicidad', 'restaurantes', 'platillos']:
-        ruta = os.path.join(UPLOAD_FOLDER, carpeta)
-        if os.path.exists(ruta):
-            try:
-                archivos = os.listdir(ruta)
-                resultado["contenido"][carpeta] = archivos
-                print(f"📁 {carpeta}: {len(archivos)} archivos")
-            except Exception as e:
-                resultado["contenido"][carpeta] = f"Error: {e}"
-        else:
-            resultado["contenido"][carpeta] = "Carpeta no existe"
+    if os.path.exists(carpeta):
+        for archivo in os.listdir(carpeta):
+            ruta_completa = os.path.join(carpeta, archivo)
+            resultado["archivos"].append({
+                "nombre": archivo,
+                "tamaño": os.path.getsize(ruta_completa),
+                "modificado": datetime.datetime.fromtimestamp(os.path.getmtime(ruta_completa)).strftime('%Y-%m-%d %H:%M:%S')
+            })
     
     return resultado
 
@@ -1824,15 +1822,9 @@ def subir_menu():
 
         if foto and foto.filename != "":
             filename = secure_filename(foto.filename)
-            timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-            nombre_unico = f"platillo_{timestamp}_{filename}"
-            
-            # Guardar en static/uploads/platillos (PERSISTENTE)
-            upload_path = os.path.join("static/uploads", "platillos")
-            file_path = os.path.join(upload_path, nombre_unico)
-            os.makedirs(upload_path, exist_ok=True)
-            foto.save(file_path)
-            foto_filename = nombre_unico
+            foto_path = os.path.join(UPLOAD_FOLDER, filename)
+            foto.save(foto_path)
+            foto_filename = filename
 
         if nombre_platillo and precio:
             restaurantes.update_one(
@@ -1891,15 +1883,9 @@ def editar_platillo(restaurante_id, platillo_index):
         foto = request.files.get("foto")
         if foto and foto.filename != "":
             filename = secure_filename(foto.filename)
-            timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-            nombre_unico = f"platillo_{timestamp}_{filename}"
-            
-            # Guardar en static/uploads/platillos (PERSISTENTE)
-            upload_path = os.path.join("static/uploads", "platillos")
-            file_path = os.path.join(upload_path, nombre_unico)
-            os.makedirs(upload_path, exist_ok=True)
-            foto.save(file_path)
-            platillo["foto"] = nombre_unico
+            foto_path = os.path.join(UPLOAD_FOLDER, filename)
+            foto.save(foto_path)
+            platillo["foto"] = filename
 
         platillo["nombre"] = nombre
         platillo["precio"] = precio
@@ -2036,32 +2022,30 @@ def gestionar_publicidad():
         fecha_fin = request.form.get("fecha_fin")
         descuento = request.form.get("descuento")
         
-        # Subir imagen si existe (PERSISTENTE)
+        # Subir imagen si existe
         imagen = request.files.get("imagen")
         imagen_filename = None
         if imagen and imagen.filename != "":
             filename = secure_filename(imagen.filename)
-            upload_path = os.path.join("static/uploads", "publicidad")
-            file_path = os.path.join(upload_path, filename)
-            os.makedirs(upload_path, exist_ok=True)
-            imagen.save(file_path)
+            imagen_path = os.path.join(UPLOAD_FOLDER, "publicidad", filename)
+            os.makedirs(os.path.dirname(imagen_path), exist_ok=True)
+            imagen.save(imagen_path)
             imagen_filename = filename
-            print(f"✅ Imagen de publicidad guardada en: {file_path}")
 
         publicacion = {
-            "restaurante_id": restaurante["_id"],
-            "restaurante_nombre": restaurante["nombre"],
-            "titulo": titulo,
-            "descripcion": descripcion,
-            "tipo": tipo,
-            "fecha_inicio": datetime.datetime.strptime(fecha_inicio, "%Y-%m-%d") if fecha_inicio else None,
-            "fecha_fin": datetime.datetime.strptime(fecha_fin, "%Y-%m-%d") if fecha_fin else None,
-            "descuento": descuento,
-            "imagen": imagen_filename,
-            "activa": True,
-            "fecha_creacion": datetime.datetime.now(datetime.UTC),
-            "vistas": 0
-        }
+    "restaurante_id": restaurante["_id"],
+    "restaurante_nombre": restaurante["nombre"],
+    "titulo": titulo,
+    "descripcion": descripcion,
+    "tipo": tipo,
+    "fecha_inicio": datetime.datetime.strptime(fecha_inicio, "%Y-%m-%d") if fecha_inicio else None,
+    "fecha_fin": datetime.datetime.strptime(fecha_fin, "%Y-%m-%d") if fecha_fin else None,
+    "descuento": descuento,
+    "imagen": imagen_filename,
+    "activa": True,  # ← IMPORTANTE: debe ser True
+    "fecha_creacion": datetime.datetime.now(datetime.UTC),
+    "vistas": 0
+}
         
         publicidad.insert_one(publicacion)
         return redirect(url_for("dashboard_restaurante"))
