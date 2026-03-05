@@ -270,7 +270,8 @@
 
             {% if platillo.foto %}
             <div class="platillo-imagen">
-                <img src="{{ url_for('static', filename='uploads/' + platillo.foto) }}" alt="{{ platillo.nombre }}">
+                <!-- CORREGIDO: Usar get_image_url para la imagen del platillo -->
+                <img src="{{ get_image_url(platillo.foto, 'platillo') }}" alt="{{ platillo.nombre }}">
             </div>
             {% endif %}
 

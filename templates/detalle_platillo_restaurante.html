@@ -129,7 +129,8 @@
 
             {% if platillo.foto %}
             <div class="platillo-imagen">
-                <img src="{{ url_for('static', filename='uploads/' + platillo.foto) }}" alt="{{ platillo.nombre }}">
+                <!-- CORREGIDO: Usar get_image_url con tipo 'platillo' -->
+                <img src="{{ get_image_url(platillo.foto, 'platillo') }}" alt="{{ platillo.nombre }}">            
             </div>
             {% endif %}
 
@@ -149,7 +150,7 @@
                     </button>
                 </form>
                 
-                <!-- Botón para configurar IA (CORREGIDO - AHORA FUERA DEL FORM) -->
+                <!-- Botón para configurar IA -->
                 <a href="{{ url_for('configurar_ia_platillo', restaurante_id=restaurante._id, platillo_index=platillo_index) }}" class="btn-ia">
                     <i class="fas fa-robot"></i> Configurar Asistente IA
                 </a>

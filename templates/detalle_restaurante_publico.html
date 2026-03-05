@@ -313,6 +313,15 @@
             </a>
         </div>
 
+        <!-- Imagen del restaurante -->
+        {% if restaurante.imagen_restaurante %}
+        <div style="text-align: center; margin-bottom: 20px;">
+            <img src="{{ get_image_url(restaurante.imagen_restaurante, 'restaurante') }}" 
+                 alt="{{ restaurante.nombre }}" 
+                 style="max-width: 100%; max-height: 300px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+        </div>
+        {% endif %}
+
         <!-- INFORMACIÓN DEL RESTAURANTE -->
         <div class="info-restaurante">
             <div class="info-item">
@@ -372,10 +381,17 @@
             </div>
         </div>
 
-        <!-- PUBLICIDAD -->
+        <!-- PUBLICIDAD CON IMÁGENES CORREGIDAS -->
         {% if restaurante.publicidad_activa and restaurante.publicidad_activa|length > 0 %}
             {% for pub in restaurante.publicidad_activa %}
             <div class="publicidad-card">
+                {% if pub.imagen %}
+                <div style="margin-bottom: 10px;">
+                    <img src="{{ get_image_url(pub.imagen, 'publicidad') }}" 
+                         alt="{{ pub.titulo }}" 
+                         style="width: 100%; max-height: 150px; object-fit: cover; border-radius: 5px;">
+                </div>
+                {% endif %}
                 <span class="publicidad-tipo">{{ pub.tipo|upper }}</span>
                 <h3 class="publicidad-titulo">{{ pub.titulo }}</h3>
                 <p>{{ pub.descripcion }}</p>
@@ -388,7 +404,7 @@
             {% endfor %}
         {% endif %}
 
-        <!-- MENÚ -->
+        <!-- MENÚ CON IMÁGENES CORREGIDAS -->
         <h2 class="menu-titulo"><i class="fas fa-utensils"></i> Menú</h2>
         {% if restaurante.menu %}
             <div class="menu-scroll-container">
@@ -396,7 +412,12 @@
                     {% for platillo in restaurante.menu %}
                     <div class="platillo-card">
                         {% if platillo.foto %}
-                        <img src="{{ url_for('static', filename='uploads/' + platillo.foto) }}" alt="{{ platillo.nombre }}">
+                            <!-- CORREGIDO: Imagen del platillo con get_image_url -->
+                            <img src="{{ get_image_url(platillo.foto, 'platillo') }}" alt="{{ platillo.nombre }}">
+                        {% else %}
+                            <div style="width: 100%; height: 120px; background: linear-gradient(135deg, #7a3e1d, #4CAF50); display: flex; align-items: center; justify-content: center; color: white;">
+                                <i class="fas fa-utensils" style="font-size: 2rem;"></i>
+                            </div>
                         {% endif %}
                         <div class="platillo-info">
                             <h3>{{ platillo.nombre }}</h3>

@@ -196,8 +196,9 @@
             {% for r in restaurantes %}
                 <div class="card" onclick="window.location.href='{{ url_for('detalle_restaurante', id=r._id) }}'">
                     {% if r.imagen_restaurante %}
-                        <img src="{{ url_for('static', filename='uploads/restaurantes/' + r.imagen_restaurante) }}" 
-                        alt="{{ r.nombre }}" class="card-img">
+                        <!-- CORREGIDO: Usar get_image_url para la imagen del restaurante -->
+                        <img src="{{ get_image_url(r.imagen_restaurante, 'restaurante') }}" 
+                             alt="{{ r.nombre }}" class="card-img">
                     {% else %}
                         <div class="card-img-placeholder">
                             <i class="fas fa-store"></i>

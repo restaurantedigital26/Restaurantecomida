@@ -447,7 +447,8 @@
                 Imagen Actual
             </h3>
             <div class="imagen-actual">
-                <img src="{{ url_for('static', filename='uploads/' + platillo.foto) }}" alt="{{ platillo.nombre }}">
+                <!-- CORREGIDO: Usar get_image_url con tipo 'platillo' -->
+                <img src="{{ get_image_url(platillo.foto, 'platillo') }}" alt="{{ platillo.nombre }}">                
                 <div class="imagen-info">
                     <p><i class="fas fa-check-circle"></i> Esta es la imagen actual del platillo</p>
                     <p><i class="fas fa-info-circle"></i> Si subes una nueva imagen, esta será reemplazada</p>

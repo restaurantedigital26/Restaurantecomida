@@ -1,5 +1,4 @@
-from flask import Flask, render_template, request, jsonify
-from flask import send_from_directory, abort
+from flask import Flask, render_template, request, jsonify, send_from_directory, abort
 import openai  # type: ignore
 from pymongo import MongoClient
 import requests, os
@@ -10,6 +9,8 @@ from werkzeug.utils import secure_filename
 import uuid
 import datetime
 import sys
+import mimetypes
+from urllib.parse import unquote, quote
 
 # =========================
 # CONFIGURACIÓN GENERAL
@@ -37,7 +38,7 @@ if not GOOGLE_API_KEY:
     print("⚠️ ADVERTENCIA: GOOGLE_PLACES_API_KEY no configurada. El mapa podría no funcionar.")
 
 # =========================
-# OPENAI
+# OPENAI (VERSIÓN LEGACY - FUNCIONAL)
 # =========================
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
@@ -228,6 +229,60 @@ def logout():
     return redirect(url_for("landing"))
 
 # =========================
+# SERVIDOR DE IMÁGENES DESDE UPLOAD_FOLDER
+# =========================
+@app.route('/uploads/<path:filename>')
+def uploaded_file(filename):
+    """Sirve archivos desde UPLOAD_FOLDER con diagnóstico detallado"""
+    import os
+    
+    # Construir ruta completa
+    ruta_completa = os.path.join(UPLOAD_FOLDER, filename)
+    
+    print(f"🔍 Solicitando: {filename}")
+    print(f"📁 Buscando en: {ruta_completa}")
+    print(f"📁 ¿Existe? {os.path.exists(ruta_completa)}")
+    
+    if not os.path.exists(ruta_completa):
+        # Listar archivos en la carpeta para diagnóstico
+        carpeta = os.path.dirname(ruta_completa)
+        if os.path.exists(carpeta):
+            archivos = os.listdir(carpeta)
+            print(f"📁 Archivos en {carpeta}: {archivos[:5]}")  # Primeros 5 archivos
+        else:
+            print(f"❌ La carpeta {carpeta} no existe")
+        return "Imagen no encontrada", 404
+    
+    try:
+        return send_from_directory(UPLOAD_FOLDER, filename)
+    except Exception as e:
+        print(f"❌ Error sirviendo: {e}")
+        return "Error al servir imagen", 500
+
+# =========================
+# FUNCIÓN PARA OBTENER URL DE IMAGEN
+# =========================
+def get_image_url(imagen_ruta, tipo="general"):
+    """
+    Devuelve la URL correcta para una imagen
+    """
+    if not imagen_ruta:
+        return url_for('static', filename='img/default.jpg')
+    
+    # Si es solo nombre de archivo (guardado en uploads)
+    if tipo == "restaurante":
+        return url_for('static', filename=f'uploads/restaurantes/{imagen_ruta}')
+    elif tipo == "publicidad":
+        return url_for('static', filename=f'uploads/publicidad/{imagen_ruta}')
+    else:  # general o platillo
+        return url_for('static', filename=f'uploads/{imagen_ruta}')
+
+# Hacer disponible la función get_image_url en todos los templates
+@app.context_processor
+def utility_processor():
+    return dict(get_image_url=get_image_url)
+
+# =========================
 # CARGAR PLATILLOS
 # =========================
 @app.route("/cargar-platillos")
@@ -246,7 +301,7 @@ def cargar_platillos_tradicionales():
     })
 
 # =========================
-# MAPA
+# MAPA - SOLO RESTAURANTES REGISTRADOS
 # =========================
 @app.route("/mapa")
 def mapa():
@@ -256,30 +311,30 @@ def mapa():
     # Buscar SOLO en restaurantes registrados (NO en Google Places)
     if platillo:
         # Buscar restaurantes que tengan este platillo en su menú
-        restaurantes_con_platillo = []
         for r in restaurantes.find():
             if r.get("menu"):
                 for p in r["menu"]:
-                    if platillo in p.get("nombre", "").lower():
-                        restaurantes_con_platillo.append(r)
+                    if platillo.lower() in p.get("nombre", "").lower():
+                        if r.get("ubicacion") and r["ubicacion"].get("lat") and r["ubicacion"].get("lng"):
+                            resultados.append({
+                                "nombre": r["nombre"],
+                                "direccion": r.get("direccion", "Dirección no disponible"),
+                                "ubicacion": r["ubicacion"],
+                                "rating": r.get("promedio_general", 0),
+                                "total_reviews": r.get("total_calificaciones", 0),
+                                "tipo": "restaurante_registrado",
+                                "platillo": platillo
+                            })
                         break
-        
-        for r in restaurantes_con_platillo:
-            if r.get("ubicacion") and r["ubicacion"].get("lat") and r["ubicacion"].get("lng"):
-                resultados.append({
-                    "nombre": r["nombre"],
-                    "direccion": r.get("direccion", "Dirección no disponible"),
-                    "ubicacion": r["ubicacion"],
-                    "rating": r.get("promedio_general", 0),
-                    "total_reviews": r.get("total_calificaciones", 0),
-                    "tipo": "restaurante_registrado",
-                    "platillo": platillo,
-                    "telefono": r.get("telefono", ""),
-                    "descripcion": r.get("descripcion", "")
-                })
     else:
         # Si no hay filtro de platillo, mostrar TODOS los restaurantes con ubicación
         for r in restaurantes.find({"ubicacion": {"$exists": True, "$ne": None}}):
+            # Obtener los platillos de este restaurante para el tooltip
+            platillos_nombres = []
+            if r.get("menu"):
+                for p in r["menu"]:
+                    platillos_nombres.append(p.get("nombre", ""))
+            
             resultados.append({
                 "nombre": r["nombre"],
                 "direccion": r.get("direccion", "Dirección no disponible"),
@@ -287,74 +342,11 @@ def mapa():
                 "rating": r.get("promedio_general", 0),
                 "total_reviews": r.get("total_calificaciones", 0),
                 "tipo": "restaurante_registrado",
-                "telefono": r.get("telefono", ""),
-                "descripcion": r.get("descripcion", "")
+                "platillos": platillos_nombres[:3]  # Solo 3 platillos para no saturar
             })
 
     print(f"📍 Mapa: {len(resultados)} restaurantes registrados encontrados")
     return jsonify(resultados)
-
-# =========================
-# CHATS ESPECÍFICOS DE PLATILLOS
-# =========================
-@app.route("/restaurante/<restaurante_id>/platillo/<int:platillo_index>/chat", methods=["POST"])
-def enviar_chat_platillo(restaurante_id, platillo_index):
-    if session.get("user_id") is None:
-        return redirect(url_for("login"))
-
-    mensaje = request.form.get("mensaje")
-    
-    if not mensaje:
-        return "⚠️ Debes escribir un mensaje"
-
-    try:
-        # Verificar que el platillo existe
-        restaurante = restaurantes.find_one({"_id": ObjectId(restaurante_id)})
-        if not restaurante or platillo_index >= len(restaurante.get("menu", [])):
-            return "Platillo no encontrado"
-        
-        platillo = restaurante["menu"][platillo_index]
-        platillo_nombre = platillo["nombre"]
-        
-        # Buscar si ya existe un chat para este cliente, restaurante y platillo específico
-        chat_key = f"{restaurante_id}_{platillo_index}_{session['user_id']}"
-        
-        chat = platillo_chats.find_one({
-            "chat_key": chat_key
-        })
-
-        nuevo_mensaje = {
-            "tipo": "Cliente",
-            "texto": mensaje,
-            "fecha": datetime.datetime.utcnow()
-        }
-
-        if chat:
-            # Actualizar chat existente
-            platillo_chats.update_one(
-                {"_id": chat["_id"]},
-                {"$push": {"mensajes": nuevo_mensaje}}
-            )
-        else:
-            # Crear nuevo chat específico para este platillo
-            platillo_chats.insert_one({
-                "chat_key": chat_key,
-                "restaurante_id": ObjectId(restaurante_id),
-                "restaurante_nombre": restaurante["nombre"],
-                "cliente_id": ObjectId(session["user_id"]),
-                "cliente_nombre": session.get("nombre", "Cliente"),
-                "platillo_index": platillo_index,
-                "platillo_nombre": platillo_nombre,
-                "mensajes": [nuevo_mensaje],
-                "fecha_inicio": datetime.datetime.utcnow()
-            })
-
-    except Exception as e:
-        print(f"Error al enviar mensaje: {e}")
-        return "⚠️ Error al enviar el mensaje"
-
-    # Redirigir de vuelta a la página del platillo
-    return redirect(url_for("detalle_platillo_cliente", restaurante_id=restaurante_id, platillo_index=platillo_index))
 
 # =========================
 # PROCESAR CONSULTA DE PLATILLO
@@ -452,9 +444,8 @@ def procesar_consulta_platillo(platillo_key, mensaje):
             "reply": f"Lo siento, no pude obtener información sobre {platillo_key}."
         })
 
-
 # =========================
-# CHAT IA MEJORADO CON DIAGNÓSTICO
+# CHAT IA MEJORADO (VERSIÓN LEGACY)
 # =========================
 @app.route("/chat", methods=["POST"])
 def chat():
@@ -630,37 +621,6 @@ def chat():
         }), 500
 
 # =========================
-# SERVIR IMÁGENES DESDE UPLOAD_FOLDER
-# =========================
-@app.route('/uploads/<path:filename>')
-def uploaded_file(filename):
-    """Sirve archivos desde UPLOAD_FOLDER con diagnóstico detallado"""
-    import os
-    
-    # Construir ruta completa
-    ruta_completa = os.path.join(UPLOAD_FOLDER, filename)
-    
-    print(f"🔍 Solicitando: {filename}")
-    print(f"📁 Buscando en: {ruta_completa}")
-    print(f"📁 ¿Existe? {os.path.exists(ruta_completa)}")
-    
-    if not os.path.exists(ruta_completa):
-        # Listar archivos en la carpeta para diagnóstico
-        carpeta = os.path.dirname(ruta_completa)
-        if os.path.exists(carpeta):
-            archivos = os.listdir(carpeta)
-            print(f"📁 Archivos en {carpeta}: {archivos[:5]}")  # Primeros 5 archivos
-        else:
-            print(f"❌ La carpeta {carpeta} no existe")
-        return "Imagen no encontrada", 404
-    
-    try:
-        return send_from_directory(UPLOAD_FOLDER, filename)
-    except Exception as e:
-        print(f"❌ Error sirviendo: {e}")
-        return "Error al servir imagen", 500
-
-# =========================
 # REGISTRO
 # =========================
 @app.route("/register", methods=["GET", "POST"])
@@ -817,7 +777,7 @@ def admin_crear_restaurante():
             print("📸 No se recibió imagen")
 
         if not nombre or not email or not password:
-            return "⚠️ Todos los campos obligatorios"
+            return "⚠️ Todos los campos son obligatorios"
 
         # Verificar si ya existe
         if usuarios.find_one({"email": email}):
@@ -2017,40 +1977,68 @@ def gestionar_publicidad():
     if request.method == "POST":
         titulo = request.form.get("titulo")
         descripcion = request.form.get("descripcion")
-        tipo = request.form.get("tipo")  # 'oferta', 'evento', 'promocion'
+        tipo = request.form.get("tipo")
         fecha_inicio = request.form.get("fecha_inicio")
         fecha_fin = request.form.get("fecha_fin")
         descuento = request.form.get("descuento")
         
-        # Subir imagen si existe
+        # ===== PROCESAR IMAGEN DE PUBLICIDAD CORRECTAMENTE =====
         imagen = request.files.get("imagen")
-        imagen_filename = None
-        if imagen and imagen.filename != "":
-            filename = secure_filename(imagen.filename)
-            imagen_path = os.path.join(UPLOAD_FOLDER, "publicidad", filename)
-            os.makedirs(os.path.dirname(imagen_path), exist_ok=True)
-            imagen.save(imagen_path)
-            imagen_filename = filename
-
-        publicacion = {
-    "restaurante_id": restaurante["_id"],
-    "restaurante_nombre": restaurante["nombre"],
-    "titulo": titulo,
-    "descripcion": descripcion,
-    "tipo": tipo,
-    "fecha_inicio": datetime.datetime.strptime(fecha_inicio, "%Y-%m-%d") if fecha_inicio else None,
-    "fecha_fin": datetime.datetime.strptime(fecha_fin, "%Y-%m-%d") if fecha_fin else None,
-    "descuento": descuento,
-    "imagen": imagen_filename,
-    "activa": True,  # ← IMPORTANTE: debe ser True
-    "fecha_creacion": datetime.datetime.now(datetime.UTC),
-    "vistas": 0
-}
+        imagen_nombre = None
         
-        publicidad.insert_one(publicacion)
-        return redirect(url_for("dashboard_restaurante"))
+        if imagen and imagen.filename != "":
+            # 1. Limpiar el nombre del archivo
+            filename = secure_filename(imagen.filename)
+            
+            # 2. Crear nombre único con timestamp
+            timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+            nombre_unico = f"pub_{timestamp}_{filename}"
+            
+            # 3. Definir la carpeta de destino
+            upload_path = os.path.join(UPLOAD_FOLDER, "publicidad")
+            os.makedirs(upload_path, exist_ok=True)
+            
+            # 4. Ruta completa donde se guardará
+            file_path = os.path.join(upload_path, nombre_unico)
+            
+            try:
+                # 5. ¡GUARDAR EL ARCHIVO!
+                imagen.save(file_path)
+                
+                # 6. Guardar el NOMBRE del archivo en la BD (NO la ruta completa)
+                imagen_nombre = nombre_unico
+                print(f"✅ Imagen de publicidad guardada como: {nombre_unico}")
+                print(f"📁 Ruta completa: {file_path}")
+                
+            except Exception as e:
+                print(f"❌ Error guardando imagen de publicidad: {e}")
+                imagen_nombre = None
+        else:
+            print("📸 No se recibió imagen para la publicidad")
 
-    # Obtener publicaciones activas
+        # Crear la publicación con el nombre de la imagen
+        publicacion = {
+            "restaurante_id": restaurante["_id"],
+            "restaurante_nombre": restaurante["nombre"],
+            "titulo": titulo,
+            "descripcion": descripcion,
+            "tipo": tipo,
+            "fecha_inicio": datetime.datetime.strptime(fecha_inicio, "%Y-%m-%d") if fecha_inicio else None,
+            "fecha_fin": datetime.datetime.strptime(fecha_fin, "%Y-%m-%d") if fecha_fin else None,
+            "descuento": descuento,
+            "imagen": imagen_nombre,  # ✅ Guardamos solo el nombre
+            "activa": True,
+            "fecha_creacion": datetime.datetime.now(datetime.UTC),
+            "vistas": 0
+        }
+        
+        result = publicidad.insert_one(publicacion)
+        print(f"✅ Publicación creada con ID: {result.inserted_id}")
+        print(f"🖼️ Imagen en BD: {imagen_nombre}")
+        
+        return redirect(url_for("gestionar_publicidad"))
+
+    # Obtener publicaciones
     mis_publicaciones = list(publicidad.find({
         "restaurante_id": restaurante["_id"]
     }).sort("fecha_creacion", -1))
@@ -2061,15 +2049,43 @@ def gestionar_publicidad():
         publicaciones=mis_publicaciones
     )
 
+# =========================
+# DESACTIVAR PUBLICIDAD
+# =========================
 @app.route("/dashboard-restaurante/publicidad/desactivar/<publicidad_id>")
 def desactivar_publicidad(publicidad_id):
     if session.get("user_id") is None or session.get("tipo") != "restaurante":
         return redirect(url_for("login"))
     
-    publicidad.update_one(
-        {"_id": ObjectId(publicidad_id)},
-        {"$set": {"activa": False}}
-    )
+    try:
+        # Buscar la publicación
+        publicacion = publicidad.find_one({"_id": ObjectId(publicidad_id)})
+        if not publicacion:
+            print(f"❌ Publicación no encontrada: {publicidad_id}")
+            return redirect(url_for("gestionar_publicidad"))
+        
+        # Verificar que la publicación pertenece al restaurante del usuario actual
+        usuario = usuarios.find_one({"_id": ObjectId(session["user_id"])})
+        restaurante = restaurantes.find_one({"email": usuario["email"]})
+        
+        if str(publicacion["restaurante_id"]) != str(restaurante["_id"]):
+            print(f"❌ No autorizado: la publicación no pertenece a este restaurante")
+            return redirect(url_for("gestionar_publicidad"))
+        
+        # Desactivar la publicación
+        resultado = publicidad.update_one(
+            {"_id": ObjectId(publicidad_id)},
+            {"$set": {"activa": False}}
+        )
+        
+        if resultado.modified_count > 0:
+            print(f"✅ Publicación {publicidad_id} desactivada correctamente")
+        else:
+            print(f"⚠️ No se modificó ningún documento (quizás ya estaba inactiva)")
+        
+    except Exception as e:
+        print(f"❌ Error al desactivar publicidad: {e}")
+    
     return redirect(url_for("gestionar_publicidad"))
 
 # =========================
@@ -2207,7 +2223,7 @@ def configurar_ia_platillo(restaurante_id, platillo_index):
     )
 
 # =========================
-# CHAT IA POR PLATILLO (USA TU MISMA API)
+# CHAT IA POR PLATILLO (VERSIÓN LEGACY)
 # =========================
 @app.route("/api/chat-ia-platillo", methods=["POST"])
 def chat_ia_platillo():
@@ -2294,7 +2310,7 @@ INSTRUCCIONES IMPORTANTES:
         # Agregar mensaje actual
         mensajes_api.append({"role": "user", "content": mensaje})
 
-        # 5. Llamar a OpenAI (usando tu misma API)
+        # 5. Llamar a OpenAI (versión legacy)
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=mensajes_api,
@@ -2317,18 +2333,14 @@ INSTRUCCIONES IMPORTANTES:
 # =========================
 # EJECUCIÓN
 # =========================
-if __name__ == "__main__":
-    print("="*50)
-    print("🍽️  COMIDA IGUALA - SISTEMA DE RESTAURANTES")
-    print("="*50)
-    print(f"📁 Uploads: {UPLOAD_FOLDER}")
-    print(f"🔑 OpenAI: {'✅' if OPENAI_API_KEY else '❌'}")
-    print(f"🗺️ Google Maps: {'✅' if GOOGLE_API_KEY else '❌'}")
-    print(f"📊 MongoDB Atlas: ✅ Conectado")
-    print("="*50)
-    print("🌐 Servidor iniciado en: http://127.0.0.1:5000")
-    print("="*50)
-    
-    # En producción, debug=False
-    debug_mode = os.getenv("FLASK_DEBUG", "False").lower() == "true"
-    app.run(host="0.0.0.0", port=5000, debug=debug_mode)
+app.secret_key = os.getenv("SECRET_KEY", "clave_super_secreta_123")
+if not app.secret_key:
+    raise RuntimeError(
+        "❌ SECRET_KEY no está configurada. "
+        "Define la variable de entorno SECRET_KEY o "
+        "usa app.secret_key = 'clave_super_secreta_123' para desarrollo."
+    )
+
+# En producción, debug=False
+debug_mode = os.getenv("FLASK_DEBUG", "False").lower() == "true"
+app.run(host="0.0.0.0", port=5000, debug=debug_mode)

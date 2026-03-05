@@ -4,6 +4,16 @@
     <meta charset="UTF-8">
     <title>Subir Menú</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        .vista-previa-imagen {
+            margin-top: 10px;
+            max-width: 200px;
+            max-height: 150px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            padding: 5px;
+        }
+    </style>
 </head>
 
 <body class="restaurantes-page">
@@ -32,7 +42,8 @@
 
         <div class="form-group">
             <label>Foto del platillo</label>
-            <input type="file" name="foto" accept="image/*">
+            <input type="file" name="foto" accept="image/*" id="foto-input" onchange="vistaPrevia(this)">
+            <div id="preview-container"></div>
         </div>
 
         <hr style="margin:30px 0;">
@@ -69,6 +80,27 @@
     </form>
 
 </div>
+
+<script>
+    function vistaPrevia(input) {
+        const container = document.getElementById('preview-container');
+        container.innerHTML = '';
+        
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.className = 'vista-previa-imagen';
+                img.alt = 'Vista previa';
+                container.appendChild(img);
+            }
+            
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
 
 </body>
 </html>

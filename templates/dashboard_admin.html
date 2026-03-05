@@ -209,6 +209,14 @@
             background: #4CAF50;
             color: white;
         }
+        /* Estilo para imagen miniatura */
+        .img-miniatura {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
         /* Tarjetas de comentarios */
         .comentarios-grid {
             display: grid;
@@ -458,7 +466,7 @@
                 </div>
             </div>
 
-            <!-- SECCIÓN RESTAURANTES -->
+            <!-- SECCIÓN RESTAURANTES - MODIFICADA PARA INCLUIR IMAGEN -->
             <div id="seccion-restaurantes" class="seccion" style="display: none;">
                 <div class="section-header">
                     <h2><i class="fas fa-store"></i> Restaurantes Registrados</h2>
@@ -472,6 +480,7 @@
                         <table class="table">
                             <thead>
                                 <tr>
+                                    <th>Imagen</th>  <!-- NUEVA COLUMNA -->
                                     <th>Nombre</th>
                                     <th>Email</th>
                                     <th>Teléfono</th>
@@ -484,28 +493,37 @@
                             <tbody>
                                 {% for r in restaurantes %}
                                 <tr>
+                                    <td>
+                                        {% if r.imagen_restaurante %}
+                                            <img src="{{ get_image_url(r.imagen_restaurante, 'restaurante') }}" 
+                                                 alt="{{ r.nombre }}" 
+                                                 class="img-miniatura">
+                                        {% else %}
+                                            <img src="{{ url_for('static', filename='img/default.jpg') }}" 
+                                                 alt="Sin imagen" 
+                                                 class="img-miniatura">
+                                        {% endif %}
+                                    </td>
                                     <td><i class="fas fa-store"></i> {{ r.nombre }}</td>
                                     <td>{{ r.email }}</td>
                                     <td>{{ r.telefono or 'N/A' }}</td>
                                     <td>{{ r.direccion or 'N/A' }}</td>
                                     <td>{{ r.menu|length if r.menu else 0 }}</td>
                                     <td>
-    {% if r.redes_sociales %}
-        {# Verificar si es un diccionario #}
-        {% if r.redes_sociales is mapping %}
-            {% for tipo, url in r.redes_sociales.items() %}
-                <a href="{{ url }}" target="_blank" style="margin-right: 5px;">
-                    <i class="fab fa-{{ tipo }}"></i>
-                </a>
-            {% endfor %}
-        {% else %}
-            {# Si es un string, mostrarlo como texto #}
-            {{ r.redes_sociales }}
-        {% endif %}
-    {% else %}
-        N/A
-    {% endif %}
-</td>
+                                        {% if r.redes_sociales %}
+                                            {% if r.redes_sociales is mapping %}
+                                                {% for tipo, url in r.redes_sociales.items() %}
+                                                    <a href="{{ url }}" target="_blank" style="margin-right: 5px;">
+                                                        <i class="fab fa-{{ tipo }}"></i>
+                                                    </a>
+                                                {% endfor %}
+                                            {% else %}
+                                                {{ r.redes_sociales }}
+                                            {% endif %}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
                                     <td>
                                         <a href="{{ url_for('admin_editar_restaurante', restaurante_id=r._id) }}" class="btn-small" style="background-color: #2196F3; margin-right: 5px;">
                                             <i class="fas fa-edit"></i> Editar
@@ -524,197 +542,197 @@
                 </div>
             </div>
 
-            <!-- SECCIÓN CLIENTES (modificar la tabla) -->
-<div id="seccion-clientes" class="seccion" style="display: none;">
-    <div class="section-header">
-        <h2><i class="fas fa-users"></i> Clientes Registrados</h2>
-        <div class="filtros">
-            <input type="text" id="buscarCliente" class="filtro-input" placeholder="Buscar cliente..." onkeyup="filtrarClientes()">
-        </div>
-    </div>
-
-    <div class="section">
-        <div class="table-container">
-            <table class="table" id="tablaClientes">
-                <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Email</th>
-                        <th>Fecha de Registro</th>
-                        <th>Comentarios</th>
-                        <th>Chats</th>
-                        <th>Acciones</th>  <!-- ← NUEVA COLUMNA -->
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for cliente in clientes %}
-                    <tr>
-                        <td><i class="fas fa-user"></i> {{ cliente.nombre }}</td>
-                        <td>{{ cliente.email }}</td>
-                        <td>
-                            <i class="far fa-calendar"></i>
-                            {{ cliente.fecha_registro.strftime("%d/%m/%Y") if cliente.fecha_registro else 'No disponible' }}
-                            <br>
-                            <small>{{ cliente.fecha_registro.strftime("%H:%M") if cliente.fecha_registro else '' }}</small>
-                        </td>
-                        <td>{{ cliente.total_comentarios or 0 }}</td>
-                        <td>{{ cliente.total_chats or 0 }}</td>
-                        <td>
-                            <form action="{{ url_for('admin_eliminar_cliente', cliente_id=cliente._id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de eliminar este cliente?\n\nSe eliminarán también TODOS sus:\n- {{ cliente.total_comentarios }} comentarios\n- {{ cliente.total_chats }} chats\n\nEsta acción no se puede deshacer.')">
-                                <button type="submit" class="btn-small" style="background-color: #f44336;">
-                                    <i class="fas fa-trash"></i> Eliminar
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-            <!-- SECCIÓN COMENTARIOS - CON VALIDACIÓN DE ID -->
-<div id="seccion-comentarios" class="seccion" style="display: none;">
-    <div class="section-header">
-        <h2><i class="fas fa-star"></i> Todos los Comentarios ({{ todos_comentarios|length }})</h2>
-        <div class="filtros">
-            <input type="text" id="buscarComentario" class="filtro-input" placeholder="Buscar en comentarios..." onkeyup="filtrarComentarios()">
-            <select id="filtroRestaurante" class="filtro-select" onchange="filtrarComentarios()">
-                <option value="">Todos los restaurantes</option>
-                {% for r in restaurantes_lista %}
-                <option value="{{ r.nombre }}">{{ r.nombre }}</option>
-                {% endfor %}
-            </select>
-        </div>
-    </div>
-
-    <style>
-        .comentarios-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        .comentario-card {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            position: relative;
-            transition: transform 0.3s, box-shadow 0.3s;
-            border-left: 4px solid #4CAF50;
-        }
-        .comentario-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-        }
-        .comentario-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #eee;
-        }
-        .comentario-cliente {
-            font-weight: bold;
-            color: #4CAF50;
-        }
-        .comentario-restaurante {
-            background: #f0f0f0;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            color: #666;
-        }
-        .comentario-texto {
-            color: #333;
-            line-height: 1.5;
-            margin: 15px 0;
-        }
-        .comentario-fecha {
-            font-size: 0.8rem;
-            color: #888;
-            margin-top: 10px;
-            padding-top: 8px;
-            border-top: 1px solid #eee;
-        }
-        .btn-eliminar-comentario {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: #f44336;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            opacity: 0;
-            transition: opacity 0.3s;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-        .comentario-card:hover .btn-eliminar-comentario {
-            opacity: 1;
-        }
-        .btn-eliminar-comentario:hover {
-            background: #d32f2f;
-            transform: scale(1.1);
-        }
-    </style>
-
-    <div class="comentarios-grid" id="comentariosGrid">
-        {% if todos_comentarios and todos_comentarios|length > 0 %}
-            {% for comentario in todos_comentarios %}
-                {% if comentario._id %}  <!-- Validar que existe ID -->
-                <div class="comentario-card" data-restaurante="{{ comentario.restaurante_nombre }}" data-texto="{{ comentario.comentario|lower }}">
-                    <!-- Botón eliminar con validación -->
-                    <form action="{{ url_for('admin_eliminar_comentario', comentario_id=comentario._id) }}" method="POST" style="margin: 0;" onsubmit="return confirm('¿Eliminar este comentario?')">
-                        <button type="submit" class="btn-eliminar-comentario" title="Eliminar comentario">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </form>
-                    
-                    <div class="comentario-header">
-                        <span class="comentario-cliente">
-                            <i class="fas fa-user"></i> {{ comentario.cliente_nombre }}
-                        </span>
-                        <span class="comentario-restaurante">
-                            <i class="fas fa-store"></i> {{ comentario.restaurante_nombre }}
-                        </span>
-                    </div>
-                    
-                    <div class="comentario-texto">
-                        "{{ comentario.comentario }}"
-                    </div>
-                    
-                    <div class="comentario-fecha">
-                        <i class="far fa-clock"></i> 
-                        {{ comentario.fecha.strftime("%d de %B, %Y - %H:%M") if comentario.fecha else 'Fecha no disponible' }}
+            <!-- SECCIÓN CLIENTES -->
+            <div id="seccion-clientes" class="seccion" style="display: none;">
+                <div class="section-header">
+                    <h2><i class="fas fa-users"></i> Clientes Registrados</h2>
+                    <div class="filtros">
+                        <input type="text" id="buscarCliente" class="filtro-input" placeholder="Buscar cliente..." onkeyup="filtrarClientes()">
                     </div>
                 </div>
-                {% endif %}
-            {% endfor %}
-        {% else %}
-            <div style="text-align: center; padding: 60px; background: #f9f9f9; border-radius: 10px; grid-column: 1 / -1;">
-                <i class="far fa-star" style="font-size: 3rem; color: #ccc; margin-bottom: 15px;"></i>
-                <h3>No hay comentarios</h3>
-                <p>Los comentarios de los clientes aparecerán aquí</p>
-            </div>
-        {% endif %}
-    </div>
-</div>
 
-<!-- Mensajes de confirmación -->
-{% if request.args.get('mensaje') %}
-<div style="background-color: #4CAF50; color: white; padding: 15px; border-radius: 5px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
-    <span><i class="fas fa-check-circle"></i> {{ request.args.get('mensaje') }}</span>
-    <button onclick="this.parentElement.style.display='none'" style="background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer;">&times;</button>
-</div>
-{% endif %}
+                <div class="section">
+                    <div class="table-container">
+                        <table class="table" id="tablaClientes">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Email</th>
+                                    <th>Fecha de Registro</th>
+                                    <th>Comentarios</th>
+                                    <th>Chats</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cliente in clientes %}
+                                <tr>
+                                    <td><i class="fas fa-user"></i> {{ cliente.nombre }}</td>
+                                    <td>{{ cliente.email }}</td>
+                                    <td>
+                                        <i class="far fa-calendar"></i>
+                                        {{ cliente.fecha_registro.strftime("%d/%m/%Y") if cliente.fecha_registro else 'No disponible' }}
+                                        <br>
+                                        <small>{{ cliente.fecha_registro.strftime("%H:%M") if cliente.fecha_registro else '' }}</small>
+                                    </td>
+                                    <td>{{ cliente.total_comentarios or 0 }}</td>
+                                    <td>{{ cliente.total_chats or 0 }}</td>
+                                    <td>
+                                        <form action="{{ url_for('admin_eliminar_cliente', cliente_id=cliente._id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de eliminar este cliente?\n\nSe eliminarán también TODOS sus:\n- {{ cliente.total_comentarios }} comentarios\n- {{ cliente.total_chats }} chats\n\nEsta acción no se puede deshacer.')">
+                                            <button type="submit" class="btn-small" style="background-color: #f44336;">
+                                                <i class="fas fa-trash"></i> Eliminar
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN COMENTARIOS -->
+            <div id="seccion-comentarios" class="seccion" style="display: none;">
+                <div class="section-header">
+                    <h2><i class="fas fa-star"></i> Todos los Comentarios ({{ todos_comentarios|length }})</h2>
+                    <div class="filtros">
+                        <input type="text" id="buscarComentario" class="filtro-input" placeholder="Buscar en comentarios..." onkeyup="filtrarComentarios()">
+                        <select id="filtroRestaurante" class="filtro-select" onchange="filtrarComentarios()">
+                            <option value="">Todos los restaurantes</option>
+                            {% for r in restaurantes_lista %}
+                            <option value="{{ r.nombre }}">{{ r.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <style>
+                    .comentarios-grid {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+                        gap: 20px;
+                        margin-top: 20px;
+                    }
+                    .comentario-card {
+                        background: white;
+                        border-radius: 10px;
+                        padding: 20px;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                        position: relative;
+                        transition: transform 0.3s, box-shadow 0.3s;
+                        border-left: 4px solid #4CAF50;
+                    }
+                    .comentario-card:hover {
+                        transform: translateY(-3px);
+                        box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+                    }
+                    .comentario-header {
+                        display: flex;
+                        justify-content: space-between;
+                        margin-bottom: 12px;
+                        padding-bottom: 8px;
+                        border-bottom: 1px solid #eee;
+                    }
+                    .comentario-cliente {
+                        font-weight: bold;
+                        color: #4CAF50;
+                    }
+                    .comentario-restaurante {
+                        background: #f0f0f0;
+                        padding: 4px 8px;
+                        border-radius: 4px;
+                        font-size: 0.8rem;
+                        color: #666;
+                    }
+                    .comentario-texto {
+                        color: #333;
+                        line-height: 1.5;
+                        margin: 15px 0;
+                    }
+                    .comentario-fecha {
+                        font-size: 0.8rem;
+                        color: #888;
+                        margin-top: 10px;
+                        padding-top: 8px;
+                        border-top: 1px solid #eee;
+                    }
+                    .btn-eliminar-comentario {
+                        position: absolute;
+                        top: 10px;
+                        right: 10px;
+                        background: #f44336;
+                        color: white;
+                        border: none;
+                        border-radius: 50%;
+                        width: 30px;
+                        height: 30px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        cursor: pointer;
+                        opacity: 0;
+                        transition: opacity 0.3s;
+                        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                    }
+                    .comentario-card:hover .btn-eliminar-comentario {
+                        opacity: 1;
+                    }
+                    .btn-eliminar-comentario:hover {
+                        background: #d32f2f;
+                        transform: scale(1.1);
+                    }
+                </style>
+
+                <div class="comentarios-grid" id="comentariosGrid">
+                    {% if todos_comentarios and todos_comentarios|length > 0 %}
+                        {% for comentario in todos_comentarios %}
+                            {% if comentario._id %}
+                            <div class="comentario-card" data-restaurante="{{ comentario.restaurante_nombre }}" data-texto="{{ comentario.comentario|lower }}">
+                                <!-- Botón eliminar con validación -->
+                                <form action="{{ url_for('admin_eliminar_comentario', comentario_id=comentario._id) }}" method="POST" style="margin: 0;" onsubmit="return confirm('¿Eliminar este comentario?')">
+                                    <button type="submit" class="btn-eliminar-comentario" title="Eliminar comentario">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </form>
+                                
+                                <div class="comentario-header">
+                                    <span class="comentario-cliente">
+                                        <i class="fas fa-user"></i> {{ comentario.cliente_nombre }}
+                                    </span>
+                                    <span class="comentario-restaurante">
+                                        <i class="fas fa-store"></i> {{ comentario.restaurante_nombre }}
+                                    </span>
+                                </div>
+                                
+                                <div class="comentario-texto">
+                                    "{{ comentario.comentario }}"
+                                </div>
+                                
+                                <div class="comentario-fecha">
+                                    <i class="far fa-clock"></i> 
+                                    {{ comentario.fecha.strftime("%d de %B, %Y - %H:%M") if comentario.fecha else 'Fecha no disponible' }}
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <div style="text-align: center; padding: 60px; background: #f9f9f9; border-radius: 10px; grid-column: 1 / -1;">
+                            <i class="far fa-star" style="font-size: 3rem; color: #ccc; margin-bottom: 15px;"></i>
+                            <h3>No hay comentarios</h3>
+                            <p>Los comentarios de los clientes aparecerán aquí</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Mensajes de confirmación -->
+            {% if request.args.get('mensaje') %}
+            <div style="background-color: #4CAF50; color: white; padding: 15px; border-radius: 5px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <span><i class="fas fa-check-circle"></i> {{ request.args.get('mensaje') }}</span>
+                <button onclick="this.parentElement.style.display='none'" style="background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer;">&times;</button>
+            </div>
+            {% endif %}
 
             <!-- SECCIÓN CHATS -->
             <div id="seccion-chats" class="seccion" style="display: none;">
@@ -830,12 +848,9 @@
 
         // Ver detalle de cliente
         function verDetalleCliente(clienteId) {
-            // Aquí puedes hacer un fetch para obtener más detalles del cliente
-            // Por ahora, mostraremos un modal con información básica
             const modal = document.getElementById('modalCliente');
             const detalle = document.getElementById('detalleCliente');
             
-            // Buscar el cliente en la tabla (esto es temporal, idealmente sería un fetch)
             const rows = document.getElementById('tablaClientes').getElementsByTagName('tr');
             for (let i = 1; i < rows.length; i++) {
                 if (rows[i].dataset.id === clienteId) {

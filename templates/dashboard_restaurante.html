@@ -453,40 +453,40 @@
         </div>
 
         <!-- Contenido: Chats (MEJORADO para mostrar vista previa) -->
-<div id="tabChats" class="tab-content active">
-    <h2><i class="fas fa-comment-dots"></i> Conversaciones por Platillo</h2>
-    {% if chat and chat.clientes %}
-        {% for cliente in chat.clientes %}
-            <div style="margin-bottom: 15px;">
-                <div style="background-color: #e0e0e0; padding: 8px; border-radius: 5px; margin-bottom: 5px;">
-                    <strong><i class="fas fa-user"></i> {{ cliente.cliente_nombre }}</strong>
-                </div>
-                {% for chat_item in cliente.chats_por_platillo %}
-                    <div onclick="mostrarChatPlatillo('{{ chat_item.chat_id }}')" 
-                         style="padding: 8px; margin-left: 10px; margin-bottom: 5px; background-color: #fff; border: 1px solid #ddd; border-radius: 5px; cursor: pointer; {% if chat_selected and chat_selected.chat_id == chat_item.chat_id %}background-color: #4CAF50; color: white;{% endif %}">
-                        <div style="display: flex; justify-content: space-between;">
-                            <span><i class="fas fa-utensils"></i> {{ chat_item.platillo_nombre }}</span>
-                            <small>{{ chat_item.ultimo_mensaje_fecha.strftime("%H:%M") if chat_item.ultimo_mensaje_fecha else '' }}</small>
+        <div id="tabChats" class="tab-content active">
+            <h2><i class="fas fa-comment-dots"></i> Conversaciones por Platillo</h2>
+            {% if chat and chat.clientes %}
+                {% for cliente in chat.clientes %}
+                    <div style="margin-bottom: 15px;">
+                        <div style="background-color: #e0e0e0; padding: 8px; border-radius: 5px; margin-bottom: 5px;">
+                            <strong><i class="fas fa-user"></i> {{ cliente.cliente_nombre }}</strong>
                         </div>
-                        <small style="{% if chat_selected and chat_selected.chat_id == chat_item.chat_id %}color: white;{% else %}color: #666;{% endif %}">
-                            {% if chat_item.ultimo_mensaje_tipo == 'Restaurante' %}
-                                <i class="fas fa-check" style="color: #4CAF50;"></i> Tú:
-                            {% else %}
-                                <i class="fas fa-user"></i> Cliente:
-                            {% endif %}
-                            {{ chat_item.ultimo_mensaje }}
-                        </small>
+                        {% for chat_item in cliente.chats_por_platillo %}
+                            <div onclick="mostrarChatPlatillo('{{ chat_item.chat_id }}')" 
+                                 style="padding: 8px; margin-left: 10px; margin-bottom: 5px; background-color: #fff; border: 1px solid #ddd; border-radius: 5px; cursor: pointer; {% if chat_selected and chat_selected.chat_id == chat_item.chat_id %}background-color: #4CAF50; color: white;{% endif %}">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span><i class="fas fa-utensils"></i> {{ chat_item.platillo_nombre }}</span>
+                                    <small>{{ chat_item.ultimo_mensaje_fecha.strftime("%H:%M") if chat_item.ultimo_mensaje_fecha else '' }}</small>
+                                </div>
+                                <small style="{% if chat_selected and chat_selected.chat_id == chat_item.chat_id %}color: white;{% else %}color: #666;{% endif %}">
+                                    {% if chat_item.ultimo_mensaje_tipo == 'Restaurante' %}
+                                        <i class="fas fa-check" style="color: #4CAF50;"></i> Tú:
+                                    {% else %}
+                                        <i class="fas fa-user"></i> Cliente:
+                                    {% endif %}
+                                    {{ chat_item.ultimo_mensaje }}
+                                </small>
+                            </div>
+                        {% endfor %}
                     </div>
                 {% endfor %}
-            </div>
-        {% endfor %}
-    {% else %}
-        <p style="text-align: center; color: #666; padding: 20px;">
-            <i class="far fa-comment-dots" style="font-size: 2rem; margin-bottom: 10px;"></i><br>
-            No hay conversaciones aún
-        </p>
-    {% endif %}
-</div>
+            {% else %}
+                <p style="text-align: center; color: #666; padding: 20px;">
+                    <i class="far fa-comment-dots" style="font-size: 2rem; margin-bottom: 10px;"></i><br>
+                    No hay conversaciones aún
+                </p>
+            {% endif %}
+        </div>
 
         <!-- Contenido: Comentarios (se mantiene igual) -->
         <div id="tabComentarios" class="tab-content">
@@ -514,303 +514,321 @@
         <a href="{{ url_for('gestionar_publicidad') }}" class="btn-publicidad">
             <i class="fas fa-bullhorn"></i> Gestionar Publicidad y Ofertas
         </a>
+        <div style="margin-bottom: 20px; display: flex; gap: 10px;">
+            <a href="{{ url_for('logout') }}" class="btn-cerrar" style="background-color: #f44336; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; display: inline-block;" onclick="return confirm('¿Estás seguro de cerrar sesión?')">
+                🚪 Cerrar Sesión
+            </a>
+        </div>
 
         <!-- DATOS RESTAURANTE (actualizado) -->
-<div class="datos-restaurante">
-    <h2>Información General</h2>
-    <p><strong>Descripción:</strong> {{ restaurante.descripcion or 'Sin descripción' }}</p>
-    <p><strong>Dirección:</strong> {{ restaurante.direccion or 'No disponible' }}</p>
-    <p><strong>Teléfono:</strong> {{ restaurante.telefono or 'No disponible' }}</p>
-    <p><strong>Redes sociales:</strong>
-    {% if restaurante.redes_sociales %}
-        {% if restaurante.redes_sociales is mapping %}
-            {% for tipo, url in restaurante.redes_sociales.items() %}
-                {% set url_completa = url if url.startswith('http') else 'https://' + url %}
-                <a href="{{ url_completa }}" target="_blank" rel="noopener noreferrer" style="margin-right: 10px;">
-                    <i class="fab fa-{{ tipo }}"></i> {{ tipo|capitalize }}
-                </a>
-            {% endfor %}
-        {% else %}
-            {% set url_completa = restaurante.redes_sociales if restaurante.redes_sociales.startswith('http') else 'https://' + restaurante.redes_sociales %}
-            <a href="{{ url_completa }}" target="_blank" rel="noopener noreferrer">{{ restaurante.redes_sociales }}</a>
+        <div class="datos-restaurante">
+            <h2>Información General</h2>
+            <p><strong>Descripción:</strong> {{ restaurante.descripcion or 'Sin descripción' }}</p>
+            <p><strong>Dirección:</strong> {{ restaurante.direccion or 'No disponible' }}</p>
+            <p><strong>Teléfono:</strong> {{ restaurante.telefono or 'No disponible' }}</p>
+            <p><strong>Redes sociales:</strong>
+            {% if restaurante.redes_sociales %}
+                {% if restaurante.redes_sociales is mapping %}
+                    {% for tipo, url in restaurante.redes_sociales.items() %}
+                        {% set url_completa = url if url.startswith('http') else 'https://' + url %}
+                        <a href="{{ url_completa }}" target="_blank" rel="noopener noreferrer" style="margin-right: 10px;">
+                            <i class="fab fa-{{ tipo }}"></i> {{ tipo|capitalize }}
+                        </a>
+                    {% endfor %}
+                {% else %}
+                    {% set url_completa = restaurante.redes_sociales if restaurante.redes_sociales.startswith('http') else 'https://' + restaurante.redes_sociales %}
+                    <a href="{{ url_completa }}" target="_blank" rel="noopener noreferrer">{{ restaurante.redes_sociales }}</a>
+                {% endif %}
+            {% else %}
+                No disponible
+            {% endif %}
+            </p>
+
+            <!-- Imagen del restaurante -->
+            {% if restaurante.imagen_restaurante %}
+            <div style="margin-top: 15px; text-align: center;">
+                <img src="{{ get_image_url(restaurante.imagen_restaurante, 'restaurante') }}" 
+                     alt="{{ restaurante.nombre }}" 
+                     style="max-width: 200px; max-height: 150px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd;">
+            </div>
+            {% endif %}
+
+            <!-- SECCIÓN DE CALIFICACIONES PARA EL RESTAURANTE -->
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd;">
+                <p><strong>⭐ Calificaciones:</strong></p>
+                <p>Comida: {{ restaurante.promedio_comida|round(1) if restaurante.promedio_comida else '0.0' }} / 5 
+                   ({{ restaurante.total_calificaciones or 0 }} calificaciones)</p>
+                <p>Servicio: {{ restaurante.promedio_servicio|round(1) if restaurante.promedio_servicio else '0.0' }} / 5</p>
+            </div>
+        </div>
+
+        <!-- MAPA DEL RESTAURANTE (solo para el dueño) -->
+        {% if restaurante.ubicacion and restaurante.ubicacion.lat and restaurante.ubicacion.lng %}   
+            {% include 'mapa_restaurante.html' %}
         {% endif %}
-    {% else %}
-        No disponible
-    {% endif %}
-</p>
-
-    <!-- SECCIÓN DE CALIFICACIONES PARA EL RESTAURANTE -->
-    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd;">
-        <p><strong>⭐ Calificaciones:</strong></p>
-        <p>Comida: {{ restaurante.promedio_comida|round(1) if restaurante.promedio_comida else '0.0' }} / 5 
-           ({{ restaurante.total_calificaciones or 0 }} calificaciones)</p>
-        <p>Servicio: {{ restaurante.promedio_servicio|round(1) if restaurante.promedio_servicio else '0.0' }} / 5</p>
-    </div>
-</div>
-
-<!-- MAPA DEL RESTAURANTE (solo para el dueño) -->
-{% if restaurante.ubicacion and restaurante.ubicacion.lat and restaurante.ubicacion.lng %}   
-{% include 'mapa_restaurante.html' %}
-{% endif %}
 
         <!-- MENÚ CON SCROLL LATERAL -->
-<h2 style="display: flex; justify-content: space-between; align-items: center;">
-    <span><i class="fas fa-book-open"></i> Menú</span>
-    <a href="{{ url_for('subir_menu') }}" style="background-color: #4CAF50; color: white; padding: 8px 15px; border-radius: 5px; text-decoration: none; font-size: 0.9rem;">
-        <i class="fas fa-plus-circle"></i> Agregar Platillo
-    </a>
-</h2>
+        <h2 style="display: flex; justify-content: space-between; align-items: center;">
+            <span><i class="fas fa-book-open"></i> Menú</span>
+            <a href="{{ url_for('subir_menu') }}" style="background-color: #4CAF50; color: white; padding: 8px 15px; border-radius: 5px; text-decoration: none; font-size: 0.9rem;">
+                <i class="fas fa-plus-circle"></i> Agregar Platillo
+            </a>
+        </h2>
 
-<style>
-    .menu-scroll-container {
-        width: 100%;
-        overflow-x: auto;
-        overflow-y: hidden;
-        white-space: nowrap;
-        padding: 10px 0;
-        margin-bottom: 20px;
-        scroll-behavior: smooth;
-        -webkit-overflow-scrolling: touch;
-    }
-    
-    .menu-scroll-container::-webkit-scrollbar {
-        height: 8px;
-    }
-    
-    .menu-scroll-container::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 10px;
-    }
-    
-    .menu-scroll-container::-webkit-scrollbar-thumb {
-        background: #4CAF50;
-        border-radius: 10px;
-    }
-    
-    .menu-scroll-container::-webkit-scrollbar-thumb:hover {
-        background: #45a049;
-    }
-    
-    .menu-scroll {
-        display: inline-flex;
-        gap: 20px;
-        flex-wrap: nowrap;
-    }
-    
-    .platillo-card-scroll {
-        width: 250px;
-        min-width: 250px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 10px;
-        background-color: #fff;
-        text-align: center;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        white-space: normal;
-        word-wrap: break-word;
-        cursor: pointer;
-    }
-    
-    .platillo-card-scroll:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        border-color: #4CAF50;
-    }
-    
-    .platillo-card-scroll img {
-        max-width: 150px;
-        max-height: 150px;
-        object-fit: cover;
-        border-radius: 5px;
-        margin-bottom: 10px;
-    }
-    
-    .platillo-card-scroll h3 {
-        margin: 5px 0;
-        color: #333;
-        white-space: normal;
-    }
-    
-    .platillo-card-scroll p {
-        margin: 5px 0;
-        color: #555;
-        font-size: 0.9rem;
-        white-space: normal;
-    }
-    
-    .scroll-controls {
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-        margin-bottom: 10px;
-    }
-    
-    .scroll-btn {
-        background-color: #4CAF50;
-        color: white;
-        border: none;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    }
-    
-    .scroll-btn:hover {
-        background-color: #45a049;
-    }
-    
-    .scroll-btn:disabled {
-        background-color: #ccc;
-        cursor: not-allowed;
-    }
-</style>
+        <style>
+            .menu-scroll-container {
+                width: 100%;
+                overflow-x: auto;
+                overflow-y: hidden;
+                white-space: nowrap;
+                padding: 10px 0;
+                margin-bottom: 20px;
+                scroll-behavior: smooth;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .menu-scroll-container::-webkit-scrollbar {
+                height: 8px;
+            }
+            
+            .menu-scroll-container::-webkit-scrollbar-track {
+                background: #f1f1f1;
+                border-radius: 10px;
+            }
+            
+            .menu-scroll-container::-webkit-scrollbar-thumb {
+                background: #4CAF50;
+                border-radius: 10px;
+            }
+            
+            .menu-scroll-container::-webkit-scrollbar-thumb:hover {
+                background: #45a049;
+            }
+            
+            .menu-scroll {
+                display: inline-flex;
+                gap: 20px;
+                flex-wrap: nowrap;
+            }
+            
+            .platillo-card-scroll {
+                width: 250px;
+                min-width: 250px;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                padding: 10px;
+                background-color: #fff;
+                text-align: center;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+                white-space: normal;
+                word-wrap: break-word;
+                cursor: pointer;
+            }
+            
+            .platillo-card-scroll:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                border-color: #4CAF50;
+            }
+            
+            .platillo-card-scroll img {
+                max-width: 150px;
+                max-height: 150px;
+                object-fit: cover;
+                border-radius: 5px;
+                margin-bottom: 10px;
+            }
+            
+            .platillo-card-scroll h3 {
+                margin: 5px 0;
+                color: #333;
+                white-space: normal;
+            }
+            
+            .platillo-card-scroll p {
+                margin: 5px 0;
+                color: #555;
+                font-size: 0.9rem;
+                white-space: normal;
+            }
+            
+            .scroll-controls {
+                display: flex;
+                justify-content: flex-end;
+                gap: 10px;
+                margin-bottom: 10px;
+            }
+            
+            .scroll-btn {
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            }
+            
+            .scroll-btn:hover {
+                background-color: #45a049;
+            }
+            
+            .scroll-btn:disabled {
+                background-color: #ccc;
+                cursor: not-allowed;
+            }
+        </style>
 
-{% if restaurante.menu %}
-    <div class="scroll-controls">
-        <button class="scroll-btn" onclick="scrollMenu('left')" id="scrollLeftBtn">
-            <i class="fas fa-chevron-left"></i>
-        </button>
-        <button class="scroll-btn" onclick="scrollMenu('right')" id="scrollRightBtn">
-            <i class="fas fa-chevron-right"></i>
-        </button>
-    </div>
-    
-    <div class="menu-scroll-container" id="menuScrollContainer">
-        <div class="menu-scroll">
-            {% for platillo in restaurante.menu %}
-                <div class="platillo-card-scroll" onclick="window.location.href='{{ url_for('detalle_platillo_restaurante', restaurante_id=restaurante._id, platillo_index=loop.index0) }}'">
-                    <h3>{{ platillo.nombre }}</h3>
-                    {% if platillo.foto %}
-                        <img src="{{ url_for('static', filename='uploads/' + platillo.foto) }}" alt="{{ platillo.nombre }}">
-                    {% endif %}
-                    <p>{{ platillo.descripcion[:100] }}{% if platillo.descripcion and platillo.descripcion|length > 100 %}...{% endif %}</p>
-                    <p><strong>Precio:</strong> ${{ platillo.precio }}</p>
-                    <div style="margin-top: 10px; color: #4CAF50;">
-                        <i class="fas fa-info-circle"></i> Ver más
-                    </div>
+        {% if restaurante.menu %}
+            <div class="scroll-controls">
+                <button class="scroll-btn" onclick="scrollMenu('left')" id="scrollLeftBtn">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="scroll-btn" onclick="scrollMenu('right')" id="scrollRightBtn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            
+            <div class="menu-scroll-container" id="menuScrollContainer">
+                <div class="menu-scroll">
+                    {% for platillo in restaurante.menu %}
+                        <div class="platillo-card-scroll" onclick="window.location.href='{{ url_for('detalle_platillo_restaurante', restaurante_id=restaurante._id, platillo_index=loop.index0) }}'">
+                            <h3>{{ platillo.nombre }}</h3>
+                            {% if platillo.foto %}
+                                <!-- CORREGIDO: Usar get_image_url con tipo 'platillo' -->
+                                <img src="{{ get_image_url(platillo.foto, 'platillo') }}" alt="{{ platillo.nombre }}">
+                            {% else %}
+                                <img src="{{ url_for('static', filename='img/default.jpg') }}" alt="Sin imagen" style="opacity: 0.5;">
+                            {% endif %}
+                            <p>{{ platillo.descripcion[:100] }}{% if platillo.descripcion and platillo.descripcion|length > 100 %}...{% endif %}</p>
+                            <p><strong>Precio:</strong> ${{ platillo.precio }}</p>
+                            <div style="margin-top: 10px; color: #4CAF50;">
+                                <i class="fas fa-info-circle"></i> Ver más
+                            </div>
+                        </div>
+                    {% endfor %}
                 </div>
-            {% endfor %}
-        </div>
-    </div>
-{% else %}
-    <div style="text-align: center; padding: 40px; background: #f9f9f9; border-radius: 8px; margin-top: 20px;">
-        <i class="fas fa-utensils" style="font-size: 3rem; color: #ccc; margin-bottom: 15px;"></i>
-        <p style="color: #666; margin-bottom: 20px;">No hay platillos registrados</p>
-        <a href="{{ url_for('subir_menu') }}" style="background-color: #4CAF50; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; display: inline-block;">
-            <i class="fas fa-plus-circle"></i> Agregar tu primer platillo
-        </a>
-    </div>
-{% endif %}
-
-<script>
-    function scrollMenu(direction) {
-        const container = document.getElementById('menuScrollContainer');
-        const scrollAmount = 300;
-        
-        if (direction === 'left') {
-            container.scrollLeft -= scrollAmount;
-        } else {
-            container.scrollLeft += scrollAmount;
-        }
-        
-        // Actualizar estado de botones
-        setTimeout(() => {
-            document.getElementById('scrollLeftBtn').disabled = container.scrollLeft <= 0;
-            document.getElementById('scrollRightBtn').disabled = 
-                container.scrollLeft >= container.scrollWidth - container.clientWidth;
-        }, 100);
-    }
-    
-    // Verificar scroll al cargar
-    window.addEventListener('load', function() {
-        const container = document.getElementById('menuScrollContainer');
-        if (container) {
-            setTimeout(() => {
-                document.getElementById('scrollLeftBtn').disabled = container.scrollLeft <= 0;
-                document.getElementById('scrollRightBtn').disabled = 
-                    container.scrollLeft >= container.scrollWidth - container.clientWidth;
-            }, 100);
-        }
-    });
-</script>
-        <!-- CHAT (CORREGIDO: cliente izquierda, restaurante derecha) -->
-<!-- CHAT (MODIFICADO PARA CHATS DE PLATILLOS) -->
-{% if chat_selected %}
-    <h2>💬 Chat con {{ chat_selected.cliente_nombre }} 
-        {% if chat_selected.tipo == 'platillo' %}
-            sobre {{ chat_selected.platillo_nombre }}
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 40px; background: #f9f9f9; border-radius: 8px; margin-top: 20px;">
+                <i class="fas fa-utensils" style="font-size: 3rem; color: #ccc; margin-bottom: 15px;"></i>
+                <p style="color: #666; margin-bottom: 20px;">No hay platillos registrados</p>
+                <a href="{{ url_for('subir_menu') }}" style="background-color: #4CAF50; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; display: inline-block;">
+                    <i class="fas fa-plus-circle"></i> Agregar tu primer platillo
+                </a>
+            </div>
         {% endif %}
-    </h2>
-    <div style="background-color: #e8f5e8; padding: 10px; border-radius: 5px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-        <i class="fas {% if chat_selected.tipo == 'platillo' %}fa-utensils{% else %}fa-comments{% endif %}" 
-           style="color: #4CAF50; font-size: 1.2rem;"></i>
-        <strong>
-            {% if chat_selected.tipo == 'platillo' %}
-                Platillo: {{ chat_selected.platillo_nombre }}
-            {% else %}
-                Conversación General
-            {% endif %}
-        </strong>
-    </div>
-    
-    <div class="chat-box" id="chatBox">
-        {% for m in chat_selected.mensajes %}
-            {% if m.tipo == 'Cliente' %}
-                <!-- Mensaje del cliente a la izquierda -->
-                <div class="mensaje-card mensaje-cliente">
-                    <div class="mensaje-header">
-                        <i class="fas fa-user"></i>
-                        <strong>{{ chat_selected.cliente_nombre }}</strong>
-                    </div>
-                    <div class="mensaje-texto">
-                        {{ m.texto }}
-                    </div>
-                    <small class="mensaje-fecha">
-                        <i class="far fa-clock"></i> {{ m.fecha.strftime("%d %b %Y - %H:%M") if m.fecha else '' }}
-                    </small>
-                </div>
-            {% else %}
-                <!-- Mensaje del restaurante a la derecha -->
-                <div class="mensaje-card mensaje-restaurante">
-                    <div class="mensaje-header">
-                        <i class="fas fa-store"></i>
-                        <strong>Tú</strong>
-                        <i class="fas fa-check check-enviado"></i>
-                    </div>
-                    <div class="mensaje-texto">
-                        {{ m.texto }}
-                    </div>
-                    <small class="mensaje-fecha">
-                        <i class="far fa-clock"></i> {{ m.fecha.strftime("%d %b %Y - %H:%M") if m.fecha else '' }}
-                    </small>
-                </div>
-            {% endif %}
-        {% endfor %}
-    </div>
 
-    {% if chat_selected.tipo == 'platillo' %}
-        <form action="{{ url_for('responder_chat_platillo', chat_id=chat_selected.chat_id) }}" method="POST">
-            <textarea name="mensaje" rows="2" placeholder="Escribe tu respuesta sobre {{ chat_selected.platillo_nombre }}..." required></textarea>
-            <button type="submit">
-                <i class="fas fa-paper-plane"></i> Enviar respuesta
-            </button>
-        </form>
-    {% else %}
-        <form action="{{ url_for('responder_chat_general', chat_id=chat_selected.chat_id) }}" method="POST">
-            <textarea name="mensaje" rows="2" placeholder="Escribe tu respuesta..." required></textarea>
-            <button type="submit">
-                <i class="fas fa-paper-plane"></i> Enviar respuesta
-            </button>
-        </form>
-    {% endif %}
-{% else %}
-    <p>Selecciona una conversación en el panel izquierdo para ver el chat.</p>
-{% endif %}
+        <script>
+            function scrollMenu(direction) {
+                const container = document.getElementById('menuScrollContainer');
+                const scrollAmount = 300;
+                
+                if (direction === 'left') {
+                    container.scrollLeft -= scrollAmount;
+                } else {
+                    container.scrollLeft += scrollAmount;
+                }
+                
+                // Actualizar estado de botones
+                setTimeout(() => {
+                    document.getElementById('scrollLeftBtn').disabled = container.scrollLeft <= 0;
+                    document.getElementById('scrollRightBtn').disabled = 
+                        container.scrollLeft >= container.scrollWidth - container.clientWidth;
+                }, 100);
+            }
+            
+            // Verificar scroll al cargar
+            window.addEventListener('load', function() {
+                const container = document.getElementById('menuScrollContainer');
+                if (container) {
+                    setTimeout(() => {
+                        document.getElementById('scrollLeftBtn').disabled = container.scrollLeft <= 0;
+                        document.getElementById('scrollRightBtn').disabled = 
+                            container.scrollLeft >= container.scrollWidth - container.clientWidth;
+                    }, 100);
+                }
+            });
+        </script>
+        
+        <!-- CHAT (CORREGIDO: cliente izquierda, restaurante derecha) -->
+        <!-- CHAT (MODIFICADO PARA CHATS DE PLATILLOS) -->
+        {% if chat_selected %}
+            <h2>💬 Chat con {{ chat_selected.cliente_nombre }} 
+                {% if chat_selected.tipo == 'platillo' %}
+                    sobre {{ chat_selected.platillo_nombre }}
+                {% endif %}
+            </h2>
+            <div style="background-color: #e8f5e8; padding: 10px; border-radius: 5px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                <i class="fas {% if chat_selected.tipo == 'platillo' %}fa-utensils{% else %}fa-comments{% endif %}" 
+                   style="color: #4CAF50; font-size: 1.2rem;"></i>
+                <strong>
+                    {% if chat_selected.tipo == 'platillo' %}
+                        Platillo: {{ chat_selected.platillo_nombre }}
+                    {% else %}
+                        Conversación General
+                    {% endif %}
+                </strong>
+            </div>
+            
+            <div class="chat-box" id="chatBox">
+                {% for m in chat_selected.mensajes %}
+                    {% if m.tipo == 'Cliente' %}
+                        <!-- Mensaje del cliente a la izquierda -->
+                        <div class="mensaje-card mensaje-cliente">
+                            <div class="mensaje-header">
+                                <i class="fas fa-user"></i>
+                                <strong>{{ chat_selected.cliente_nombre }}</strong>
+                            </div>
+                            <div class="mensaje-texto">
+                                {{ m.texto }}
+                            </div>
+                            <small class="mensaje-fecha">
+                                <i class="far fa-clock"></i> {{ m.fecha.strftime("%d %b %Y - %H:%M") if m.fecha else '' }}
+                            </small>
+                        </div>
+                    {% else %}
+                        <!-- Mensaje del restaurante a la derecha -->
+                        <div class="mensaje-card mensaje-restaurante">
+                            <div class="mensaje-header">
+                                <i class="fas fa-store"></i>
+                                <strong>Tú</strong>
+                                <i class="fas fa-check check-enviado"></i>
+                            </div>
+                            <div class="mensaje-texto">
+                                {{ m.texto }}
+                            </div>
+                            <small class="mensaje-fecha">
+                                <i class="far fa-clock"></i> {{ m.fecha.strftime("%d %b %Y - %H:%M") if m.fecha else '' }}
+                            </small>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            {% if chat_selected.tipo == 'platillo' %}
+                <form action="{{ url_for('responder_chat_platillo', chat_id=chat_selected.chat_id) }}" method="POST">
+                    <textarea name="mensaje" rows="2" placeholder="Escribe tu respuesta sobre {{ chat_selected.platillo_nombre }}..." required></textarea>
+                    <button type="submit">
+                        <i class="fas fa-paper-plane"></i> Enviar respuesta
+                    </button>
+                </form>
+            {% else %}
+                <form action="{{ url_for('responder_chat_general', chat_id=chat_selected.chat_id) }}" method="POST">
+                    <textarea name="mensaje" rows="2" placeholder="Escribe tu respuesta..." required></textarea>
+                    <button type="submit">
+                        <i class="fas fa-paper-plane"></i> Enviar respuesta
+                    </button>
+                </form>
+            {% endif %}
+        {% else %}
+            <p>Selecciona una conversación en el panel izquierdo para ver el chat.</p>
+        {% endif %}
 
     </div>
 </div>
@@ -859,8 +877,8 @@
     }
 
     function mostrarChatPlatillo(chatId) {
-    window.location.href = "{{ url_for('dashboard_restaurante') }}?chat_id=" + chatId;
-}
+        window.location.href = "{{ url_for('dashboard_restaurante') }}?chat_id=" + chatId;
+    }
 </script>
 
 </body>

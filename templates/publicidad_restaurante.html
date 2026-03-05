@@ -116,6 +116,13 @@
             cursor: pointer;
             margin-top: 10px;
         }
+        .vista-previa {
+            margin-top: 10px;
+            max-width: 200px;
+            max-height: 150px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
     </style>
 </head>
 <body>
@@ -167,7 +174,8 @@
                 
                 <div class="form-group">
                     <label>Imagen de la publicación</label>
-                    <input type="file" name="imagen" accept="image/*">
+                    <input type="file" name="imagen" accept="image/*" id="imagen-input" onchange="vistaPrevia(this)">
+                    <div id="preview-container"></div>
                 </div>
                 
                 <button type="submit" style="background: #4CAF50; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer;">
@@ -181,7 +189,8 @@
             {% for pub in publicaciones %}
             <div class="publicacion-card {% if pub.activa %}activa{% else %}inactiva{% endif %}">
                 {% if pub.imagen %}
-                <img src="{{ url_for('static', filename='uploads/publicidad/' + pub.imagen) }}" class="publicacion-img">
+                <!-- CORREGIDO: Usar get_image_url con tipo 'publicidad' -->
+                <img src="{{ get_image_url(pub.imagen, 'publicidad') }}" alt="{{ pub.titulo }}" class="publicacion-img">
                 {% endif %}
                 <div class="publicacion-tipo tipo-{{ pub.tipo }}">
                     {{ pub.tipo|upper }}
@@ -206,11 +215,11 @@
                     </div>
                     
                     <div style="margin-top: 10px; color: #666;">
-                    <i class="fas fa-eye"></i> {{ pub.vistas or 0 }} vistas
+                        <i class="fas fa-eye"></i> {{ pub.vistas or 0 }} vistas
                     </div>
                     
                     {% if pub.activa %}
-                    <a href="{{ url_for('desactivar_publicidad', publicidad_id=pub._id) }}" class="btn-desactivar">
+                    <a href="{{ url_for('desactivar_publicidad', publicidad_id=pub._id) }}" class="btn-desactivar" onclick="return confirm('¿Estás seguro de desactivar esta publicación?')">
                         <i class="fas fa-stop"></i> Desactivar
                     </a>
                     {% else %}
@@ -223,5 +232,26 @@
             {% endfor %}
         </div>
     </div>
+
+    <script>
+        function vistaPrevia(input) {
+            const container = document.getElementById('preview-container');
+            container.innerHTML = '';
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'vista-previa';
+                    img.alt = 'Vista previa';
+                    container.appendChild(img);
+                }
+                
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
 </body>
 </html>

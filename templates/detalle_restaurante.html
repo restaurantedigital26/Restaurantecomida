@@ -622,7 +622,7 @@
             {% endif %}
         </div>
 
-        <!-- PUBLICIDAD DEL RESTAURANTE -->
+        <!-- PUBLICIDAD DEL RESTAURANTE - CORREGIDO -->
         {% if restaurante.publicidad_activa %}
         <div style="margin: 20px 0; background: linear-gradient(135deg, #fff3e0, #ffe0b2); border-radius: 10px; padding: 15px; border-left: 5px solid #FF9800;">
             <h3 style="color: #FF9800; margin-top: 0;">
@@ -631,6 +631,11 @@
             <div style="display: grid; gap: 15px;">
                 {% for pub in restaurante.publicidad_activa %}
                 <div style="background: white; border-radius: 8px; padding: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                    {% if pub.imagen %}
+                    <img src="{{ get_image_url(pub.imagen, 'publicidad') }}" 
+                         alt="{{ pub.titulo }}" 
+                         style="width: 100%; max-height: 150px; object-fit: cover; border-radius: 5px; margin-bottom: 10px;">
+                    {% endif %}
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <span style="background: #FF9800; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.8rem;">
                             {{ pub.tipo|upper }}
@@ -721,6 +726,15 @@
 
         <h1>{{ restaurante.nombre }}</h1>
 
+        <!-- Imagen del restaurante (si existe) -->
+        {% if restaurante.imagen_restaurante %}
+        <div style="text-align: center; margin-bottom: 20px;">
+            <img src="{{ get_image_url(restaurante.imagen_restaurante, 'restaurante') }}" 
+                 alt="{{ restaurante.nombre }}" 
+                 style="max-width: 100%; max-height: 300px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+        </div>
+        {% endif %}
+
         <p class="descripcion">
             {{ restaurante.descripcion or "Este restaurante aún no ha agregado descripción." }}
         </p>
@@ -730,21 +744,21 @@
             <p><strong>📞 Teléfono:</strong> {{ restaurante.telefono or 'No disponible' }}</p>
 
             {% if restaurante.redes_sociales %}
-    <p>
-        <strong>🌐 Redes:</strong>
-        {% if restaurante.redes_sociales is mapping %}
-            {% for tipo, url in restaurante.redes_sociales.items() %}
-                {% set url_completa = url if url.startswith('http') else 'https://' + url %}
-                <a href="{{ url_completa }}" target="_blank" rel="noopener noreferrer" style="margin-right: 10px;">
-                    <i class="fab fa-{{ tipo }}"></i> {{ tipo|capitalize }}
-                </a>
-            {% endfor %}
-        {% else %}
-            {% set url_completa = restaurante.redes_sociales if restaurante.redes_sociales.startswith('http') else 'https://' + restaurante.redes_sociales %}
-            <a href="{{ url_completa }}" target="_blank" rel="noopener noreferrer">{{ restaurante.redes_sociales }}</a>
-        {% endif %}
-    </p>
-{% endif %}
+            <p>
+                <strong>🌐 Redes:</strong>
+                {% if restaurante.redes_sociales is mapping %}
+                    {% for tipo, url in restaurante.redes_sociales.items() %}
+                        {% set url_completa = url if url.startswith('http') else 'https://' + url %}
+                        <a href="{{ url_completa }}" target="_blank" rel="noopener noreferrer" style="margin-right: 10px;">
+                            <i class="fab fa-{{ tipo }}"></i> {{ tipo|capitalize }}
+                        </a>
+                    {% endfor %}
+                {% else %}
+                    {% set url_completa = restaurante.redes_sociales if restaurante.redes_sociales.startswith('http') else 'https://' + restaurante.redes_sociales %}
+                    <a href="{{ url_completa }}" target="_blank" rel="noopener noreferrer">{{ restaurante.redes_sociales }}</a>
+                {% endif %}
+            </p>
+            {% endif %}
             {% include 'mapa_restaurante.html' %}
         </div>
 
@@ -796,9 +810,10 @@
                     {% for platillo in restaurante.menu %}
                         <div class="platillo-cliente-card" onclick="window.location.href='{{ url_for('detalle_platillo_cliente', restaurante_id=restaurante._id, platillo_index=loop.index0) }}'">
                             {% if platillo.foto %}
-                                <img src="{{ url_for('static', filename='uploads/' + platillo.foto) }}" alt="{{ platillo.nombre }}">
+                                <!-- CORREGIDO: Imagen del platillo -->
+                                <img src="{{ get_image_url(platillo.foto, 'platillo') }}" alt="{{ platillo.nombre }}">
                             {% else %}
-                                <img src="{{ url_for('static', filename='img/no-image.png') }}" alt="Sin imagen">
+                                <img src="{{ url_for('static', filename='img/default.jpg') }}" alt="Sin imagen">
                             {% endif %}
                             <div class="platillo-cliente-info">
                                 <h3>{{ platillo.nombre }}</h3>
