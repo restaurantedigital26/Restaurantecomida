@@ -7,7 +7,6 @@ from flask import session, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import uuid
-import datetime
 from datetime import datetime, timezone
 import sys
 import mimetypes
@@ -1427,11 +1426,11 @@ def dashboard_cliente():
         return redirect(url_for("landing"))
 
     # Obtener publicidad activa de todos los restaurantes
-    ahora = datetime.datetime.now(datetime.UTC)
+    ahora = datetime.now(timezone.utc)  # ← CORREGIDO
     
     # Crear fecha de inicio del día (00:00:00) y fin del día (23:59:59)
-    inicio_dia = datetime.datetime(ahora.year, ahora.month, ahora.day, 0, 0, 0, tzinfo=datetime.UTC)
-    fin_dia = datetime.datetime(ahora.year, ahora.month, ahora.day, 23, 59, 59, tzinfo=datetime.UTC)
+    inicio_dia = datetime(ahora.year, ahora.month, ahora.day, 0, 0, 0, tzinfo=timezone.utc)
+    fin_dia = datetime(ahora.year, ahora.month, ahora.day, 23, 59, 59, tzinfo=timezone.utc)
     
     print("="*50)
     print("🔍 DEBUG PUBLICIDAD - INICIO")
@@ -1493,7 +1492,7 @@ def debug_publicidad():
     todas = list(db.publicidad.find({}))
     
     # Ver publicaciones activas
-    ahora = datetime.datetime.now(datetime.UTC)
+    ahora = datetime.datetime.now(datetime.utc)
     activas = list(db.publicidad.find({
         "activa": True,
         "$or": [
@@ -1797,7 +1796,7 @@ def detalle_restaurante(id):
             restaurante[campo] = 0.0 if 'promedio' in campo else 0
 
     # Obtener publicidad activa de ESTE restaurante
-    ahora = datetime.datetime.now(datetime.UTC)
+    ahora = datetime.datetime.now(datetime.utc)
     print(f"🔍 Buscando publicidad para restaurante {id}")  # Debug
     
     publicidad_activa = list(db.publicidad.find({
