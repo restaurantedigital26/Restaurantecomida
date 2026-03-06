@@ -106,7 +106,7 @@
             border-color: #4CAF50;
         }
         
-        /* ===== NUEVO: Estilos para la imagen ===== */
+        /* ===== Estilos para la imagen ===== */
         .card-img {
             width: 100%;
             height: 150px;
@@ -338,14 +338,14 @@
             </button>
         </div>
 
-        <!-- SCROLL HORIZONTAL DE RESTAURANTES CON IMÁGENES -->
+        <!-- SCROLL HORIZONTAL DE RESTAURANTES -->
         <div class="restaurantes-scroll-container" id="restaurantesScroll">
             <div class="restaurantes-scroll">
                 {% for r in restaurantes %}
                 <div class="card-scroll" onclick="window.location.href='{{ url_for('detalle_restaurante_publico', id=r._id) }}'">
-                    <!-- ===== CORREGIDO: Mostrar imagen del restaurante con get_image_url ===== -->
-                    {% if r.imagen_restaurante %}
-                        <img src="{{ get_image_url(r.imagen_restaurante, 'restaurante') }}" 
+                    <!-- CORREGIDO: Usar imagen_url para Cloudinary -->
+                    {% if r.imagen_url %}
+                        <img src="{{ r.imagen_url }}" 
                              alt="{{ r.nombre }}" 
                              class="card-img">
                     {% else %}

@@ -123,6 +123,14 @@
             border-radius: 5px;
             border: 1px solid #ddd;
         }
+        .info-cloudinary {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4CAF50;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            color: #2e7d32;
+        }
     </style>
 </head>
 <body>
@@ -176,6 +184,9 @@
                     <label>Imagen de la publicación</label>
                     <input type="file" name="imagen" accept="image/*" id="imagen-input" onchange="vistaPrevia(this)">
                     <div id="preview-container"></div>
+                    <div class="info-cloudinary">
+                        <i class="fas fa-cloud-upload-alt"></i> La imagen se subirá automáticamente a Cloudinary
+                    </div>
                 </div>
                 
                 <button type="submit" style="background: #4CAF50; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer;">
@@ -188,9 +199,10 @@
         <div class="grid-publicaciones">
             {% for pub in publicaciones %}
             <div class="publicacion-card {% if pub.activa %}activa{% else %}inactiva{% endif %}">
-                {% if pub.imagen %}
-                <!-- CORREGIDO: Usar get_image_url con tipo 'publicidad' -->
-                <img src="{{ get_image_url(pub.imagen, 'publicidad') }}" alt="{{ pub.titulo }}" class="publicacion-img">
+                {% if pub.imagen_url %}
+                    <img src="{{ pub.imagen_url }}" alt="{{ pub.titulo }}" class="publicacion-img">
+                {% elif pub.imagen %}
+                    <img src="{{ get_image_url(pub.imagen, 'publicidad') }}" alt="{{ pub.titulo }}" class="publicacion-img">
                 {% endif %}
                 <div class="publicacion-tipo tipo-{{ pub.tipo }}">
                     {{ pub.tipo|upper }}

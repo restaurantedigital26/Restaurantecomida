@@ -78,6 +78,81 @@ else:
 print("="*60)
 
 # =========================
+# CLOUDINARY CONFIGURATION
+# =========================
+import cloudinary  # type: ignore
+import cloudinary.uploader  # type: ignore
+import cloudinary.api  # type: ignore
+
+CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME")
+CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY")
+CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET")
+
+print("="*50)
+print("🔍 VERIFICANDO VARIABLES DE CLOUDINARY")
+print("="*50)
+print(f"CLOUDINARY_CLOUD_NAME: {'✅ Configurada' if CLOUDINARY_CLOUD_NAME else '❌ No configurada'}")
+print(f"CLOUDINARY_API_KEY: {'✅ Configurada' if CLOUDINARY_API_KEY else '❌ No configurada'}")
+print(f"CLOUDINARY_API_SECRET: {'✅ Configurada' if CLOUDINARY_API_SECRET else '❌ No configurada'}")
+
+if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
+    try:
+        cloudinary.config(
+            cloud_name=CLOUDINARY_CLOUD_NAME,
+            api_key=CLOUDINARY_API_KEY,
+            api_secret=CLOUDINARY_API_SECRET,
+            secure=True
+        )
+        print("✅ Cloudinary configurado correctamente")
+    except Exception as e:
+        print(f"❌ Error configurando Cloudinary: {e}")
+else:
+    print("⚠️ Cloudinary no configurado - usando almacenamiento local")
+print("="*50)
+
+# =========================
+# FUNCIÓN PARA SUBIR A CLOUDINARY
+# =========================
+def subir_a_cloudinary(archivo, carpeta):
+    """
+    Sube una imagen a Cloudinary y devuelve la URL segura y el public_id
+    - archivo: archivo de imagen (request.files)
+    - carpeta: 'restaurantes', 'publicidad', 'platillos'
+    """
+    if not archivo or not archivo.filename:
+        return None
+    
+    # Si Cloudinary no está configurado, retornar None
+    if not CLOUDINARY_CLOUD_NAME:
+        print("⚠️ Cloudinary no configurado")
+        return None
+    
+    try:
+        print(f"📸 Subiendo a Cloudinary: {archivo.filename}")
+        
+        resultado = cloudinary.uploader.upload(
+            archivo,
+            folder=f"comida_iguala/{carpeta}",
+            resource_type="image",
+            overwrite=True
+        )
+        
+        url_imagen = resultado['secure_url']
+        public_id = resultado['public_id']
+        
+        print(f"✅ Imagen subida: {url_imagen}")
+        print(f"📌 Public ID: {public_id}")
+        
+        return {
+            'url': url_imagen,
+            'public_id': public_id
+        }
+        
+    except Exception as e:
+        print(f"❌ Error en Cloudinary: {e}")
+        return None
+
+# =========================
 # MONGODB ATLAS (USANDO VARIABLE DE ENTORNO)
 # =========================
 MONGODB_URI = os.getenv("MONGODB_URI")
@@ -229,7 +304,7 @@ def logout():
     return redirect(url_for("landing"))
 
 # =========================
-# SERVIDOR DE IMÁGENES DESDE UPLOAD_FOLDER
+# SERVIDOR DE IMÁGENES DESDE UPLOAD_FOLDER (RESPALDO)
 # =========================
 @app.route('/uploads/<path:filename>')
 def uploaded_file(filename):
@@ -713,7 +788,7 @@ def login():
     return render_template("login.html")
 
 # =========================
-# ADMIN - CREAR RESTAURANTE (CON LOGS)
+# ADMIN - CREAR RESTAURANTE (CON CLOUDINARY)
 # =========================
 @app.route("/admin/crear-restaurante", methods=["GET", "POST"])
 def admin_crear_restaurante():
@@ -734,50 +809,27 @@ def admin_crear_restaurante():
         latitud = request.form.get("latitud")
         longitud = request.form.get("longitud")
         
-        # ===== PROCESAR IMAGEN =====
+        # ===== PROCESAR IMAGEN CON CLOUDINARY =====
         imagen_restaurante = request.files.get("imagen_restaurante")
-        imagen_filename = None
-        
+        imagen_url = None
+        imagen_public_id = None
+
         if imagen_restaurante and imagen_restaurante.filename != "":
-            print(f"📸 Imagen recibida: {imagen_restaurante.filename}")
+            print(f"📸 Subiendo imagen a Cloudinary: {imagen_restaurante.filename}")
             
-            # Limpiar nombre del archivo
-            filename = secure_filename(imagen_restaurante.filename)
+            resultado = subir_a_cloudinary(imagen_restaurante, "restaurantes")
             
-            # Crear nombre único con timestamp
-            timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-            nombre_unico = f"rest_{timestamp}_{filename}"
-            
-            # Definir ruta completa
-            upload_path = os.path.join(UPLOAD_FOLDER, "restaurantes")
-            file_path = os.path.join(upload_path, nombre_unico)
-            
-            print(f"📁 Guardando en: {file_path}")
-            
-            try:
-                # Asegurar que la carpeta existe
-                os.makedirs(upload_path, exist_ok=True)
-                
-                # Guardar archivo
-                imagen_restaurante.save(file_path)
-                imagen_filename = nombre_unico
-                print(f"✅ Imagen guardada correctamente: {nombre_unico}")
-                
-                # Verificar que el archivo existe
-                if os.path.exists(file_path):
-                    print(f"✅ Archivo verificado en disco")
-                    print(f"📏 Tamaño: {os.path.getsize(file_path)} bytes")
-                else:
-                    print(f"❌ El archivo no aparece en disco")
-                    
-            except Exception as e:
-                print(f"❌ Error guardando imagen: {e}")
-                imagen_filename = None
+            if resultado:
+                imagen_url = resultado['url']
+                imagen_public_id = resultado['public_id']
+                print(f"✅ Imagen subida a Cloudinary correctamente")
+            else:
+                print(f"⚠️ Falló la subida a Cloudinary")
         else:
             print("📸 No se recibió imagen")
 
         if not nombre or not email or not password:
-            return "⚠️ Todos los campos son obligatorios"
+            return "⚠️ Todos los campos obligatorios"
 
         # Verificar si ya existe
         if usuarios.find_one({"email": email}):
@@ -828,7 +880,9 @@ def admin_crear_restaurante():
             "sitio_web": sitio_web,
             "redes_sociales": redes_sociales,
             "ubicacion": ubicacion,
-            "imagen_restaurante": imagen_filename,
+            "imagen_restaurante": None,  # Ya no usamos nombre local
+            "imagen_url": imagen_url,
+            "imagen_public_id": imagen_public_id,
             "menu": [],
             "usuario_id": result.inserted_id,
             "fecha_creacion": datetime.datetime.now(datetime.UTC)
@@ -836,7 +890,7 @@ def admin_crear_restaurante():
         
         result_rest = restaurantes.insert_one(restaurante_data)
         print(f"✅ Restaurante creado con ID: {result_rest.inserted_id}")
-        print(f"🖼️ Imagen guardada en BD: {imagen_filename}")
+        print(f"🖼️ Imagen URL guardada: {imagen_url}")
         print("="*50)
         
         return redirect(url_for("dashboard_admin"))
@@ -844,7 +898,7 @@ def admin_crear_restaurante():
     return render_template("admin_crear_restaurante.html", google_maps_key=GOOGLE_API_KEY)
 
 # =========================
-# ADMIN - EDITAR RESTAURANTE (CON LOGS DE IMAGEN)
+# ADMIN - EDITAR RESTAURANTE (CON CLOUDINARY)
 # =========================
 @app.route("/admin/editar-restaurante/<restaurante_id>", methods=["GET", "POST"])
 def admin_editar_restaurante(restaurante_id):
@@ -868,50 +922,27 @@ def admin_editar_restaurante(restaurante_id):
         latitud = request.form.get("latitud")
         longitud = request.form.get("longitud")
         
-        # ===== PROCESAR IMAGEN =====
+        # ===== PROCESAR IMAGEN CON CLOUDINARY =====
         imagen_restaurante = request.files.get("imagen_restaurante")
-        imagen_filename = restaurante.get("imagen_restaurante")  # Mantener la actual
-        
-        print(f"📸 Archivo recibido: {imagen_restaurante}")
-        
+        imagen_url = restaurante.get("imagen_url")  # Mantener la actual
+        imagen_public_id = restaurante.get("imagen_public_id")
+
         if imagen_restaurante and imagen_restaurante.filename != "":
-            print(f"📸 Nombre del archivo: {imagen_restaurante.filename}")
-            print(f"📸 Content Type: {imagen_restaurante.content_type}")
+            print(f"📸 Subiendo nueva imagen a Cloudinary: {imagen_restaurante.filename}")
             
-            # Limpiar nombre del archivo
-            filename = secure_filename(imagen_restaurante.filename)
+            resultado = subir_a_cloudinary(imagen_restaurante, "restaurantes")
             
-            # Crear nombre único con timestamp
-            timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-            nombre_unico = f"rest_{timestamp}_{filename}"
-            
-            # Definir ruta completa
-            upload_path = os.path.join(UPLOAD_FOLDER, "restaurantes")
-            file_path = os.path.join(upload_path, nombre_unico)
-            
-            print(f"📁 Intentando guardar en: {file_path}")
-            
-            try:
-                # Asegurar que la carpeta existe
-                os.makedirs(upload_path, exist_ok=True)
+            if resultado:
+                imagen_url = resultado['url']
+                imagen_public_id = resultado['public_id']
                 
-                # Guardar archivo
-                imagen_restaurante.save(file_path)
-                imagen_filename = nombre_unico
-                print(f"✅ Imagen guardada correctamente: {nombre_unico}")
-                
-                # Eliminar imagen anterior si existe
-                if restaurante.get("imagen_restaurante"):
-                    imagen_anterior = os.path.join(upload_path, restaurante["imagen_restaurante"])
-                    if os.path.exists(imagen_anterior):
-                        os.remove(imagen_anterior)
-                        print(f"🗑️ Imagen anterior eliminada: {restaurante['imagen_restaurante']}")
-                        
-            except Exception as e:
-                print(f"❌ Error guardando imagen: {e}")
-                import traceback
-                traceback.print_exc()
-                imagen_filename = restaurante.get("imagen_restaurante")  # Mantener la anterior
+                # Eliminar imagen anterior de Cloudinary
+                if restaurante.get("imagen_public_id"):
+                    try:
+                        cloudinary.uploader.destroy(restaurante["imagen_public_id"])
+                        print(f"🗑️ Imagen anterior eliminada de Cloudinary")
+                    except Exception as e:
+                        print(f"⚠️ No se pudo eliminar imagen anterior: {e}")
         else:
             print("📸 No se recibió imagen nueva, se mantiene la actual")
 
@@ -950,12 +981,14 @@ def admin_editar_restaurante(restaurante_id):
                 "sitio_web": sitio_web,
                 "redes_sociales": redes_sociales,
                 "ubicacion": ubicacion,
-                "imagen_restaurante": imagen_filename
+                "imagen_restaurante": None,
+                "imagen_url": imagen_url,
+                "imagen_public_id": imagen_public_id
             }}
         )
         
         print(f"✅ Restaurante actualizado")
-        print(f"🖼️ Imagen final en BD: {imagen_filename}")
+        print(f"🖼️ Imagen URL final: {imagen_url}")
         print("="*50)
 
         # Actualizar también en usuarios
@@ -982,6 +1015,14 @@ def admin_eliminar_restaurante(restaurante_id):
     restaurante = restaurantes.find_one({"_id": ObjectId(restaurante_id)})
     if not restaurante:
         return "Restaurante no encontrado"
+
+    # Eliminar imagen de Cloudinary si existe
+    if restaurante.get("imagen_public_id"):
+        try:
+            cloudinary.uploader.destroy(restaurante["imagen_public_id"])
+            print(f"🗑️ Imagen eliminada de Cloudinary")
+        except Exception as e:
+            print(f"⚠️ Error al eliminar imagen de Cloudinary: {e}")
 
     # Eliminar comentarios asociados
     comentarios.delete_many({"restaurante_id": ObjectId(restaurante_id)})
@@ -1771,20 +1812,24 @@ def subir_menu():
             )
 
         # =========================
-        # DATOS DEL PLATILLO
+        # DATOS DEL PLATILLO CON CLOUDINARY
         # =========================
         nombre_platillo = request.form.get("nombre_platillo")
         precio = request.form.get("precio")
         descripcion_platillo = request.form.get("descripcion_platillo")
 
         foto = request.files.get("foto")
-        foto_filename = None
+        foto_url = None
+        foto_public_id = None
 
         if foto and foto.filename != "":
-            filename = secure_filename(foto.filename)
-            foto_path = os.path.join(UPLOAD_FOLDER, filename)
-            foto.save(foto_path)
-            foto_filename = filename
+            print(f"📸 Subiendo foto de platillo a Cloudinary")
+            
+            resultado = subir_a_cloudinary(foto, "platillos")
+            
+            if resultado:
+                foto_url = resultado['url']
+                foto_public_id = resultado['public_id']
 
         if nombre_platillo and precio:
             restaurantes.update_one(
@@ -1794,7 +1839,9 @@ def subir_menu():
                         "nombre": nombre_platillo,
                         "precio": precio,
                         "descripcion": descripcion_platillo,
-                        "foto": foto_filename
+                        "foto": None,
+                        "foto_url": foto_url,
+                        "foto_public_id": foto_public_id
                     }
                 }}
             )
@@ -1814,13 +1861,22 @@ def eliminar_platillo(restaurante_id, platillo_index):
 
     menu = restaurante.get("menu", [])
     if platillo_index < len(menu):
+        # Eliminar imagen de Cloudinary si existe
+        platillo = menu[platillo_index]
+        if platillo.get("foto_public_id"):
+            try:
+                cloudinary.uploader.destroy(platillo["foto_public_id"])
+                print(f"🗑️ Imagen de platillo eliminada de Cloudinary")
+            except Exception as e:
+                print(f"⚠️ Error al eliminar imagen: {e}")
+        
         menu.pop(platillo_index)
         restaurantes.update_one({"_id": restaurante["_id"]}, {"$set": {"menu": menu}})
 
     return redirect(url_for("dashboard_restaurante"))
 
 # =========================
-# EDITAR PLATILLO
+# EDITAR PLATILLO (CON CLOUDINARY)
 # =========================
 @app.route("/restaurante/<restaurante_id>/editar/<int:platillo_index>", methods=["GET", "POST"])
 def editar_platillo(restaurante_id, platillo_index):
@@ -1840,16 +1896,35 @@ def editar_platillo(restaurante_id, platillo_index):
         precio = request.form.get("precio")
         descripcion = request.form.get("descripcion_platillo")
 
+        # ===== PROCESAR FOTO DEL PLATILLO CON CLOUDINARY =====
         foto = request.files.get("foto")
-        if foto and foto.filename != "":
-            filename = secure_filename(foto.filename)
-            foto_path = os.path.join(UPLOAD_FOLDER, filename)
-            foto.save(foto_path)
-            platillo["foto"] = filename
+        foto_url = platillo.get("foto_url")  # Mantener la actual
+        foto_public_id = platillo.get("foto_public_id")
 
+        if foto and foto.filename != "":
+            print(f"📸 Subiendo nueva foto a Cloudinary")
+            
+            resultado = subir_a_cloudinary(foto, "platillos")
+            
+            if resultado:
+                foto_url = resultado['url']
+                foto_public_id = resultado['public_id']
+                
+                # Eliminar imagen anterior de Cloudinary
+                if platillo.get("foto_public_id"):
+                    try:
+                        cloudinary.uploader.destroy(platillo["foto_public_id"])
+                        print(f"🗑️ Imagen anterior eliminada de Cloudinary")
+                    except Exception as e:
+                        print(f"⚠️ No se pudo eliminar imagen anterior: {e}")
+
+        # Actualizar platillo
         platillo["nombre"] = nombre
         platillo["precio"] = precio
         platillo["descripcion"] = descripcion
+        platillo["foto"] = None
+        platillo["foto_url"] = foto_url
+        platillo["foto_public_id"] = foto_public_id
 
         # Guardar de nuevo en Mongo
         menu[platillo_index] = platillo
@@ -1964,7 +2039,7 @@ def actualizar_promedio_restaurante(restaurante_id):
         )
 
 # =========================
-# PUBLICIDAD Y OFERTAS DEL RESTAURANTE
+# PUBLICIDAD Y OFERTAS DEL RESTAURANTE (CON CLOUDINARY)
 # =========================
 @app.route("/dashboard-restaurante/publicidad", methods=["GET", "POST"])
 def gestionar_publicidad():
@@ -1982,41 +2057,20 @@ def gestionar_publicidad():
         fecha_fin = request.form.get("fecha_fin")
         descuento = request.form.get("descuento")
         
-        # ===== PROCESAR IMAGEN DE PUBLICIDAD CORRECTAMENTE =====
+        # ===== PROCESAR IMAGEN DE PUBLICIDAD CON CLOUDINARY =====
         imagen = request.files.get("imagen")
-        imagen_nombre = None
+        imagen_url = None
+        imagen_public_id = None
         
         if imagen and imagen.filename != "":
-            # 1. Limpiar el nombre del archivo
-            filename = secure_filename(imagen.filename)
+            print(f"📸 Subiendo imagen de publicidad a Cloudinary")
             
-            # 2. Crear nombre único con timestamp
-            timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-            nombre_unico = f"pub_{timestamp}_{filename}"
+            resultado = subir_a_cloudinary(imagen, "publicidad")
             
-            # 3. Definir la carpeta de destino
-            upload_path = os.path.join(UPLOAD_FOLDER, "publicidad")
-            os.makedirs(upload_path, exist_ok=True)
-            
-            # 4. Ruta completa donde se guardará
-            file_path = os.path.join(upload_path, nombre_unico)
-            
-            try:
-                # 5. ¡GUARDAR EL ARCHIVO!
-                imagen.save(file_path)
-                
-                # 6. Guardar el NOMBRE del archivo en la BD (NO la ruta completa)
-                imagen_nombre = nombre_unico
-                print(f"✅ Imagen de publicidad guardada como: {nombre_unico}")
-                print(f"📁 Ruta completa: {file_path}")
-                
-            except Exception as e:
-                print(f"❌ Error guardando imagen de publicidad: {e}")
-                imagen_nombre = None
-        else:
-            print("📸 No se recibió imagen para la publicidad")
+            if resultado:
+                imagen_url = resultado['url']
+                imagen_public_id = resultado['public_id']
 
-        # Crear la publicación con el nombre de la imagen
         publicacion = {
             "restaurante_id": restaurante["_id"],
             "restaurante_nombre": restaurante["nombre"],
@@ -2026,7 +2080,9 @@ def gestionar_publicidad():
             "fecha_inicio": datetime.datetime.strptime(fecha_inicio, "%Y-%m-%d") if fecha_inicio else None,
             "fecha_fin": datetime.datetime.strptime(fecha_fin, "%Y-%m-%d") if fecha_fin else None,
             "descuento": descuento,
-            "imagen": imagen_nombre,  # ✅ Guardamos solo el nombre
+            "imagen": None,  # Ya no usamos nombre local
+            "imagen_url": imagen_url,
+            "imagen_public_id": imagen_public_id,
             "activa": True,
             "fecha_creacion": datetime.datetime.now(datetime.UTC),
             "vistas": 0
@@ -2034,7 +2090,7 @@ def gestionar_publicidad():
         
         result = publicidad.insert_one(publicacion)
         print(f"✅ Publicación creada con ID: {result.inserted_id}")
-        print(f"🖼️ Imagen en BD: {imagen_nombre}")
+        print(f"🖼️ Imagen URL guardada: {imagen_url}")
         
         return redirect(url_for("gestionar_publicidad"))
 
@@ -2050,7 +2106,7 @@ def gestionar_publicidad():
     )
 
 # =========================
-# DESACTIVAR PUBLICIDAD
+# DESACTIVAR PUBLICIDAD (CON ELIMINACIÓN DE CLOUDINARY)
 # =========================
 @app.route("/dashboard-restaurante/publicidad/desactivar/<publicidad_id>")
 def desactivar_publicidad(publicidad_id):
@@ -2058,33 +2114,20 @@ def desactivar_publicidad(publicidad_id):
         return redirect(url_for("login"))
     
     try:
-        # Buscar la publicación
         publicacion = publicidad.find_one({"_id": ObjectId(publicidad_id)})
-        if not publicacion:
-            print(f"❌ Publicación no encontrada: {publicidad_id}")
-            return redirect(url_for("gestionar_publicidad"))
+        if publicacion and publicacion.get("imagen_public_id"):
+            # Eliminar de Cloudinary
+            cloudinary.uploader.destroy(publicacion["imagen_public_id"])
+            print(f"🗑️ Imagen eliminada de Cloudinary")
         
-        # Verificar que la publicación pertenece al restaurante del usuario actual
-        usuario = usuarios.find_one({"_id": ObjectId(session["user_id"])})
-        restaurante = restaurantes.find_one({"email": usuario["email"]})
-        
-        if str(publicacion["restaurante_id"]) != str(restaurante["_id"]):
-            print(f"❌ No autorizado: la publicación no pertenece a este restaurante")
-            return redirect(url_for("gestionar_publicidad"))
-        
-        # Desactivar la publicación
-        resultado = publicidad.update_one(
+        # Desactivar en BD
+        publicidad.update_one(
             {"_id": ObjectId(publicidad_id)},
             {"$set": {"activa": False}}
         )
         
-        if resultado.modified_count > 0:
-            print(f"✅ Publicación {publicidad_id} desactivada correctamente")
-        else:
-            print(f"⚠️ No se modificó ningún documento (quizás ya estaba inactiva)")
-        
     except Exception as e:
-        print(f"❌ Error al desactivar publicidad: {e}")
+        print(f"❌ Error: {e}")
     
     return redirect(url_for("gestionar_publicidad"))
 
@@ -2333,14 +2376,19 @@ INSTRUCCIONES IMPORTANTES:
 # =========================
 # EJECUCIÓN
 # =========================
-app.secret_key = os.getenv("SECRET_KEY", "clave_super_secreta_123")
-if not app.secret_key:
-    raise RuntimeError(
-        "❌ SECRET_KEY no está configurada. "
-        "Define la variable de entorno SECRET_KEY o "
-        "usa app.secret_key = 'clave_super_secreta_123' para desarrollo."
-    )
-
-# En producción, debug=False
-debug_mode = os.getenv("FLASK_DEBUG", "False").lower() == "true"
-app.run(host="0.0.0.0", port=5000, debug=debug_mode)
+if __name__ == "__main__":
+    print("="*50)
+    print("🍽️  COMIDA IGUALA - SISTEMA DE RESTAURANTES")
+    print("="*50)
+    print(f"📁 Uploads: {UPLOAD_FOLDER}")
+    print(f"🔑 OpenAI: {'✅' if OPENAI_API_KEY else '❌'}")
+    print(f"🗺️ Google Maps: {'✅' if GOOGLE_API_KEY else '❌'}")
+    print(f"📊 MongoDB Atlas: ✅ Conectado")
+    print(f"☁️ Cloudinary: {'✅' if CLOUDINARY_CLOUD_NAME else '❌'}")
+    print("="*50)
+    print("🌐 Servidor iniciado en: http://127.0.0.1:5000")
+    print("="*50)
+    
+    # En producción, debug=False
+    debug_mode = os.getenv("FLASK_DEBUG", "False").lower() == "true"
+    app.run(host="0.0.0.0", port=5000, debug=debug_mode)

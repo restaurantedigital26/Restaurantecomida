@@ -586,16 +586,15 @@
         </button>
     </div>
 
-    <!-- Pestaña de Chat - CONVERSACIÓN COMPLETA -->
+    <!-- Pestaña de Chat -->
     <div id="tabChats" class="tab-content active">
         <h2><i class="fas fa-comment-dots"></i> Chat con {{ restaurante.nombre }}</h2>
         
-        <!-- Mensajes del chat - CONVERSACIÓN COMPLETA -->
+        <!-- Mensajes del chat -->
         <div class="chat-mensajes" id="chatMensajes">
             {% if chat and chat.mensajes %}
                 {% for m in chat.mensajes %}
                     {% if m.tipo == 'Cliente' %}
-                        <!-- Mensaje del cliente (tú) -->
                         <div class="mensaje-item mensaje-cliente">
                             <strong>Tú</strong>
                             <p>{{ m.texto }}</p>
@@ -604,7 +603,6 @@
                             </small>
                         </div>
                     {% else %}
-                        <!-- Mensaje del restaurante -->
                         <div class="mensaje-item mensaje-restaurante">
                             <strong>{{ restaurante.nombre }}</strong>
                             <p>{{ m.texto }}</p>
@@ -622,7 +620,7 @@
             {% endif %}
         </div>
 
-        <!-- PUBLICIDAD DEL RESTAURANTE - CORREGIDO -->
+        <!-- PUBLICIDAD DEL RESTAURANTE - CORREGIDO CON imagen_url -->
         {% if restaurante.publicidad_activa %}
         <div style="margin: 20px 0; background: linear-gradient(135deg, #fff3e0, #ffe0b2); border-radius: 10px; padding: 15px; border-left: 5px solid #FF9800;">
             <h3 style="color: #FF9800; margin-top: 0;">
@@ -631,8 +629,8 @@
             <div style="display: grid; gap: 15px;">
                 {% for pub in restaurante.publicidad_activa %}
                 <div style="background: white; border-radius: 8px; padding: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                    {% if pub.imagen %}
-                    <img src="{{ get_image_url(pub.imagen, 'publicidad') }}" 
+                    {% if pub.imagen_url %}
+                    <img src="{{ pub.imagen_url }}" 
                          alt="{{ pub.titulo }}" 
                          style="width: 100%; max-height: 150px; object-fit: cover; border-radius: 5px; margin-bottom: 10px;">
                     {% endif %}
@@ -726,10 +724,10 @@
 
         <h1>{{ restaurante.nombre }}</h1>
 
-        <!-- Imagen del restaurante (si existe) -->
-        {% if restaurante.imagen_restaurante %}
+        <!-- Imagen del restaurante CORREGIDA - usando imagen_url -->
+        {% if restaurante.imagen_url %}
         <div style="text-align: center; margin-bottom: 20px;">
-            <img src="{{ get_image_url(restaurante.imagen_restaurante, 'restaurante') }}" 
+            <img src="{{ restaurante.imagen_url }}" 
                  alt="{{ restaurante.nombre }}" 
                  style="max-width: 100%; max-height: 300px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
         </div>
@@ -809,8 +807,11 @@
                 <div class="menu-cliente-scroll">
                     {% for platillo in restaurante.menu %}
                         <div class="platillo-cliente-card" onclick="window.location.href='{{ url_for('detalle_platillo_cliente', restaurante_id=restaurante._id, platillo_index=loop.index0) }}'">
-                            {% if platillo.foto %}
-                                <!-- CORREGIDO: Imagen del platillo -->
+                            {% if platillo.foto_url %}
+                                <!-- CORREGIDO: Usar foto_url de Cloudinary -->
+                                <img src="{{ platillo.foto_url }}" alt="{{ platillo.nombre }}">
+                            {% elif platillo.foto %}
+                                <!-- Fallback a imagen local (para compatibilidad) -->
                                 <img src="{{ get_image_url(platillo.foto, 'platillo') }}" alt="{{ platillo.nombre }}">
                             {% else %}
                                 <img src="{{ url_for('static', filename='img/default.jpg') }}" alt="Sin imagen">
@@ -954,7 +955,6 @@
         
         if (tab === 'chats') {
             document.getElementById('tabChats').classList.add('active');
-            // Hacer scroll al último mensaje en el chat
             setTimeout(() => {
                 const chatMensajes = document.getElementById('chatMensajes');
                 if (chatMensajes) {
@@ -975,7 +975,6 @@
         }
     });
 
-    // Auto-scroll al último mensaje cuando se carga la página
     window.addEventListener('load', function() {
         const chatMensajes = document.getElementById('chatMensajes');
         if (chatMensajes) {

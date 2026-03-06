@@ -268,9 +268,13 @@
                 <span class="platillo-precio">${{ platillo.precio }}</span>
             </div>
 
-            {% if platillo.foto %}
+            <!-- CORREGIDO: Usar foto_url de Cloudinary -->
+            {% if platillo.foto_url %}
             <div class="platillo-imagen">
-                <!-- CORREGIDO: Usar get_image_url para la imagen del platillo -->
+                <img src="{{ platillo.foto_url }}" alt="{{ platillo.nombre }}">
+            </div>
+            {% elif platillo.foto %}
+            <div class="platillo-imagen">
                 <img src="{{ get_image_url(platillo.foto, 'platillo') }}" alt="{{ platillo.nombre }}">
             </div>
             {% endif %}

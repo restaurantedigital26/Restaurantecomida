@@ -35,15 +35,14 @@
             margin: 0;
         }
         
-        /* ===== GRID DE RESTAURANTES (FORZADO HORIZONTAL) ===== */
+        /* ===== GRID DE RESTAURANTES ===== */
         .cards-container {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);  /* 4 columnas fijas */
+            grid-template-columns: repeat(4, 1fr);
             gap: 20px;
             margin: 40px 0;
         }
         
-        /* Responsive: menos columnas en pantallas pequeñas */
         @media (max-width: 1000px) {
             .cards-container {
                 grid-template-columns: repeat(3, 1fr);
@@ -58,7 +57,7 @@
         
         @media (max-width: 500px) {
             .cards-container {
-                grid-template-columns: 1fr;  /* 1 columna en móviles */
+                grid-template-columns: 1fr;
             }
         }
         
@@ -71,7 +70,7 @@
             cursor: pointer;
             display: flex;
             flex-direction: column;
-            width: 100%;  /* Ocupa todo el ancho de su celda */
+            width: 100%;
         }
         
         .card:hover {
@@ -81,7 +80,7 @@
         
         .card-img {
             width: 100%;
-            height: 160px;  /* Altura fija para todas las imágenes */
+            height: 160px;
             object-fit: cover;
         }
         
@@ -107,7 +106,7 @@
             font-size: 1.2rem;
             white-space: nowrap;
             overflow: hidden;
-            text-overflow: ellipsis;  /* Si el nombre es muy largo, pone ... */
+            text-overflow: ellipsis;
         }
         
         .card p {
@@ -142,7 +141,7 @@
             background-color: #45a049;
         }
         
-        /* ===== BOTÓN VOLVER AL DASHBOARD (ABAJO) ===== */
+        /* ===== BOTÓN VOLVER AL DASHBOARD ===== */
         .boton-volver-container {
             text-align: center;
             margin-top: 40px;
@@ -191,13 +190,13 @@
             <p>Explora los restaurantes registrados en la plataforma</p>
         </div>
 
-        <!-- CONTENEDOR DE RESTAURANTES (GRID HORIZONTAL FORZADO) -->
+        <!-- CONTENEDOR DE RESTAURANTES -->
         <div class="cards-container">
             {% for r in restaurantes %}
                 <div class="card" onclick="window.location.href='{{ url_for('detalle_restaurante', id=r._id) }}'">
-                    {% if r.imagen_restaurante %}
-                        <!-- CORREGIDO: Usar get_image_url para la imagen del restaurante -->
-                        <img src="{{ get_image_url(r.imagen_restaurante, 'restaurante') }}" 
+                    <!-- CORREGIDO: Usar imagen_url para Cloudinary -->
+                    {% if r.imagen_url %}
+                        <img src="{{ r.imagen_url }}" 
                              alt="{{ r.nombre }}" class="card-img">
                     {% else %}
                         <div class="card-img-placeholder">
@@ -222,7 +221,7 @@
             {% endfor %}
         </div>
 
-        <!-- BOTÓN VOLVER AL DASHBOARD (ABAJO) -->
+        <!-- BOTÓN VOLVER AL DASHBOARD -->
         <div class="boton-volver-container">
             <a href="{{ url_for('dashboard_cliente') }}" class="btn-volver-dashboard">
                 <i class="fas fa-arrow-left"></i> Volver al Dashboard

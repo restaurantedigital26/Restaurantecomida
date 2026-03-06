@@ -212,7 +212,7 @@
             color: #4CAF50;
         }
         
-        /* ===== SECCIÓN DE LOGIN MEJORADA PERO COMPACTA ===== */
+        /* SECCIÓN DE LOGIN */
         .login-prompt-compacto {
             background: linear-gradient(135deg, #4CAF50, #45a049);
             padding: 25px 20px;
@@ -313,10 +313,10 @@
             </a>
         </div>
 
-        <!-- Imagen del restaurante -->
-        {% if restaurante.imagen_restaurante %}
+        <!-- Imagen del restaurante CORREGIDA -->
+        {% if restaurante.imagen_url %}
         <div style="text-align: center; margin-bottom: 20px;">
-            <img src="{{ get_image_url(restaurante.imagen_restaurante, 'restaurante') }}" 
+            <img src="{{ restaurante.imagen_url }}" 
                  alt="{{ restaurante.nombre }}" 
                  style="max-width: 100%; max-height: 300px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
         </div>
@@ -385,9 +385,9 @@
         {% if restaurante.publicidad_activa and restaurante.publicidad_activa|length > 0 %}
             {% for pub in restaurante.publicidad_activa %}
             <div class="publicidad-card">
-                {% if pub.imagen %}
+                {% if pub.imagen_url %}
                 <div style="margin-bottom: 10px;">
-                    <img src="{{ get_image_url(pub.imagen, 'publicidad') }}" 
+                    <img src="{{ pub.imagen_url }}" 
                          alt="{{ pub.titulo }}" 
                          style="width: 100%; max-height: 150px; object-fit: cover; border-radius: 5px;">
                 </div>
@@ -411,9 +411,8 @@
                 <div class="menu-scroll">
                     {% for platillo in restaurante.menu %}
                     <div class="platillo-card">
-                        {% if platillo.foto %}
-                            <!-- CORREGIDO: Imagen del platillo con get_image_url -->
-                            <img src="{{ get_image_url(platillo.foto, 'platillo') }}" alt="{{ platillo.nombre }}">
+                        {% if platillo.foto_url %}
+                            <img src="{{ platillo.foto_url }}" alt="{{ platillo.nombre }}">
                         {% else %}
                             <div style="width: 100%; height: 120px; background: linear-gradient(135deg, #7a3e1d, #4CAF50); display: flex; align-items: center; justify-content: center; color: white;">
                                 <i class="fas fa-utensils" style="font-size: 2rem;"></i>
@@ -450,7 +449,7 @@
             {% endif %}
         </div>
 
-        <!-- SECCIÓN DE LOGIN COMPACTA -->
+        <!-- SECCIÓN DE LOGIN -->
         <div class="login-prompt-compacto">
             <i class="fas fa-lock"></i>
             <h3>¿Quieres calificar?</h3>

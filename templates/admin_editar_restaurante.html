@@ -163,129 +163,39 @@
             </div>
 
             <div class="form-group">
-    <label><i class="fas fa-map-marked-alt"></i> Ubicación en el mapa</label>
-    <div class="info-text">Puedes actualizar las coordenadas de dos formas:</div>
-    
-    <div style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 5px;">
-        <p style="margin: 0 0 5px;"><strong>Opción 1:</strong> Obtener de la dirección actualizada</p>
-        <button type="button" class="btn-primary" onclick="obtenerCoordenadas()" style="background-color: #2196F3;">
-            <i class="fas fa-map-pin"></i> Actualizar coordenadas de la dirección
-        </button>
-    </div>
-    
-    <div style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 5px;">
-        <p style="margin: 0 0 5px;"><strong>Opción 2:</strong> Arrastrar el marcador en el mapa</p>
-        <div id="mapa-edicion" style="height: 300px; width: 100%; border-radius: 5px; margin-bottom: 10px;"></div>
-    </div>
-    
-    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-        <div style="flex: 1;">
-            <label>Latitud:</label>
-            <input type="text" name="latitud" id="latitud" value="{{ restaurante.ubicacion.lat if restaurante.ubicacion else '' }}" 
-                   style="background-color: #fff; border: 1px solid #4CAF50;" readonly>
-        </div>
-        <div style="flex: 1;">
-            <label>Longitud:</label>
-            <input type="text" name="longitud" id="longitud" value="{{ restaurante.ubicacion.lng if restaurante.ubicacion else '' }}"
-                   style="background-color: #fff; border: 1px solid #4CAF50;" readonly>
-        </div>
-    </div>
-    
-    <small style="color: #666;">
-        <i class="fas fa-info-circle"></i> 
-        Las coordenadas se actualizarán automáticamente al arrastrar el marcador
-    </small>
-</div>
-
-<!-- Agrega este script al final, antes de </body> -->
-<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_key }}"></script>
-<script>
-let map;
-let marker;
-
-function initMap() {
-    // Obtener coordenadas actuales o usar defaults
-    const lat = parseFloat(document.getElementById('latitud').value) || 18.3445;
-    const lng = parseFloat(document.getElementById('longitud').value) || -99.5403;
-    const ubicacion = { lat, lng };
-    
-    // Crear mapa
-    map = new google.maps.Map(document.getElementById('mapa-edicion'), {
-        zoom: 15,
-        center: ubicacion,
-        mapTypeControl: true
-    });
-    
-    // Crear marcador arrastrable
-    marker = new google.maps.Marker({
-        position: ubicacion,
-        map: map,
-        title: '{{ restaurante.nombre }}',
-        draggable: true,  // ← Importante: se puede arrastrar
-        animation: google.maps.Animation.DROP
-    });
-    
-    // Actualizar campos cuando se arrastra el marcador
-    marker.addListener('dragend', function() {
-        const pos = marker.getPosition();
-        document.getElementById('latitud').value = pos.lat();
-        document.getElementById('longitud').value = pos.lng();
-    });
-    
-    // Hacer clic en el mapa para mover el marcador
-    map.addListener('click', function(event) {
-        marker.setPosition(event.latLng);
-        document.getElementById('latitud').value = event.latLng.lat();
-        document.getElementById('longitud').value = event.latLng.lng();
-    });
-}
-
-// Función existente para obtener coordenadas de la dirección
-function obtenerCoordenadas() {
-    const direccion = document.querySelector('input[name="direccion"]').value;
-    
-    if (!direccion) {
-        alert('Por favor ingresa primero la dirección');
-        return;
-    }
-    
-    const btn = event.target;
-    const textoOriginal = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Obteniendo coordenadas...';
-    btn.disabled = true;
-    
-    fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(direccion)}&key={{ google_maps_key }}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.results && data.results[0]) {
-                const location = data.results[0].geometry.location;
-                document.getElementById('latitud').value = location.lat;
-                document.getElementById('longitud').value = location.lng;
+                <label><i class="fas fa-map-marked-alt"></i> Ubicación en el mapa</label>
+                <div class="info-text">Puedes actualizar las coordenadas de dos formas:</div>
                 
-                // Actualizar mapa
-                if (marker) {
-                    marker.setPosition(location);
-                    map.setCenter(location);
-                }
+                <div style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 5px;">
+                    <p style="margin: 0 0 5px;"><strong>Opción 1:</strong> Obtener de la dirección actualizada</p>
+                    <button type="button" class="btn-primary" onclick="obtenerCoordenadas()" style="background-color: #2196F3;">
+                        <i class="fas fa-map-pin"></i> Actualizar coordenadas de la dirección
+                    </button>
+                </div>
                 
-                alert('✅ Coordenadas actualizadas correctamente');
-            } else {
-                alert('❌ No se pudo obtener la ubicación de esa dirección');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('❌ Error al obtener coordenadas');
-        })
-        .finally(() => {
-            btn.innerHTML = textoOriginal;
-            btn.disabled = false;
-        });
-}
-
-// Inicializar mapa cuando la página cargue
-document.addEventListener('DOMContentLoaded', initMap);
-</script>
+                <div style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 5px;">
+                    <p style="margin: 0 0 5px;"><strong>Opción 2:</strong> Arrastrar el marcador en el mapa</p>
+                    <div id="mapa-edicion" style="height: 300px; width: 100%; border-radius: 5px; margin-bottom: 10px;"></div>
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <div style="flex: 1;">
+                        <label>Latitud:</label>
+                        <input type="text" name="latitud" id="latitud" value="{{ restaurante.ubicacion.lat if restaurante.ubicacion else '' }}" 
+                               style="background-color: #fff; border: 1px solid #4CAF50;" readonly>
+                    </div>
+                    <div style="flex: 1;">
+                        <label>Longitud:</label>
+                        <input type="text" name="longitud" id="longitud" value="{{ restaurante.ubicacion.lng if restaurante.ubicacion else '' }}"
+                               style="background-color: #fff; border: 1px solid #4CAF50;" readonly>
+                    </div>
+                </div>
+                
+                <small style="color: #666;">
+                    <i class="fas fa-info-circle"></i> 
+                    Las coordenadas se actualizarán automáticamente al arrastrar el marcador
+                </small>
+            </div>
 
             <div class="form-group">
                 <label><i class="fas fa-globe"></i> Sitio Web</label>
@@ -293,88 +203,75 @@ document.addEventListener('DOMContentLoaded', initMap);
             </div>
 
             <div class="form-group">
-    <label><i class="fas fa-share-alt"></i> Redes Sociales</label>
-    <div class="info-text">Agrega los enlaces a las redes sociales del restaurante</div>
-    <div id="redesSocialesContainer" class="redes-sociales-container">
-        {% if restaurante.redes_sociales %}
-            {# Verificar si es un diccionario #}
-            {% if restaurante.redes_sociales is mapping %}
-                {% for tipo, url in restaurante.redes_sociales.items() %}
-                    <div class="red-social-item" id="red-social-{{ loop.index0 }}">
-                        <select name="red_social_tipo_{{ loop.index0 }}">
-                            <option value="facebook" {% if tipo == 'facebook' %}selected{% endif %}>Facebook</option>
-                            <option value="instagram" {% if tipo == 'instagram' %}selected{% endif %}>Instagram</option>
-                            <option value="twitter" {% if tipo == 'twitter' %}selected{% endif %}>Twitter/X</option>
-                            <option value="tiktok" {% if tipo == 'tiktok' %}selected{% endif %}>TikTok</option>
-                            <option value="youtube" {% if tipo == 'youtube' %}selected{% endif %}>YouTube</option>
-                            <option value="whatsapp" {% if tipo == 'whatsapp' %}selected{% endif %}>WhatsApp</option>
-                        </select>
-                        <input type="url" name="red_social_url_{{ loop.index0 }}" value="{{ url }}">
-                        <button type="button" class="btn-remove" onclick="eliminarRedSocial({{ loop.index0 }})">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                {% endfor %}
-            {% else %}
-                {# Si es un string, mostrar un campo de texto simple #}
-                <div class="red-social-item">
-                    <input type="url" name="red_social_url_0" value="{{ restaurante.redes_sociales }}" placeholder="URL de red social">
-                    <button type="button" class="btn-remove" onclick="this.parentElement.remove()">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                <label><i class="fas fa-share-alt"></i> Redes Sociales</label>
+                <div class="info-text">Agrega los enlaces a las redes sociales del restaurante</div>
+                <div id="redesSocialesContainer" class="redes-sociales-container">
+                    {% if restaurante.redes_sociales %}
+                        {% if restaurante.redes_sociales is mapping %}
+                            {% for tipo, url in restaurante.redes_sociales.items() %}
+                                <div class="red-social-item" id="red-social-{{ loop.index0 }}">
+                                    <select name="red_social_tipo_{{ loop.index0 }}">
+                                        <option value="facebook" {% if tipo == 'facebook' %}selected{% endif %}>Facebook</option>
+                                        <option value="instagram" {% if tipo == 'instagram' %}selected{% endif %}>Instagram</option>
+                                        <option value="twitter" {% if tipo == 'twitter' %}selected{% endif %}>Twitter/X</option>
+                                        <option value="tiktok" {% if tipo == 'tiktok' %}selected{% endif %}>TikTok</option>
+                                        <option value="youtube" {% if tipo == 'youtube' %}selected{% endif %}>YouTube</option>
+                                        <option value="whatsapp" {% if tipo == 'whatsapp' %}selected{% endif %}>WhatsApp</option>
+                                    </select>
+                                    <input type="url" name="red_social_url_{{ loop.index0 }}" value="{{ url }}">
+                                    <button type="button" class="btn-remove" onclick="eliminarRedSocial({{ loop.index0 }})">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="red-social-item">
+                                <input type="url" name="red_social_url_0" value="{{ restaurante.redes_sociales }}" placeholder="URL de red social">
+                                <button type="button" class="btn-remove" onclick="this.parentElement.remove()">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        {% endif %}
+                    {% endif %}
                 </div>
-            {% endif %}
-        {% endif %}
-    </div>
-    <button type="button" class="btn-add" onclick="agregarRedSocial()">
-        <i class="fas fa-plus"></i> Agregar Red Social
-    </button>
-</div>
+                <button type="button" class="btn-add" onclick="agregarRedSocial()">
+                    <i class="fas fa-plus"></i> Agregar Red Social
+                </button>
+            </div>
 
             <div class="form-group">
                 <label><i class="fas fa-info-circle"></i> Descripción</label>
                 <textarea name="descripcion" placeholder="Describe el restaurante, su especialidad, horarios, etc.">{{ restaurante.descripcion or '' }}</textarea>
             </div>
 
-            <!-- IMAGEN DEL RESTAURANTE -->
-<div class="form-group">
-    <label><i class="fas fa-image"></i> Imagen del Restaurante</label>
-    <div class="info-text">Sube una imagen principal para mostrar en la lista de restaurantes</div>
-    
-    {% if restaurante.imagen_restaurante %}
-    <div style="margin-bottom: 10px;">
-        <p>Imagen actual:</p>
-        <img src="{{ url_for('static', filename='uploads/restaurantes/' + restaurante.imagen_restaurante) }}" 
-             style="max-width: 200px; max-height: 150px; border-radius: 8px; border: 1px solid #ddd;">
-    </div>
-    {% endif %}
-    
-    <input type="file" name="imagen_restaurante" accept="image/*" onchange="previewImagen(this)">
-    <div id="preview-container" style="margin-top: 10px; display: none;">
-        <p>Nueva imagen:</p>
-        <img id="imagen-preview" style="max-width: 200px; max-height: 150px; border-radius: 8px; border: 1px solid #ddd;">
-    </div>
-</div>
-
-<script>
-function previewImagen(input) {
-    const preview = document.getElementById('preview-container');
-    const img = document.getElementById('imagen-preview');
-    
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        
-        reader.onload = function(e) {
-            img.src = e.target.result;
-            preview.style.display = 'block';
-        }
-        
-        reader.readAsDataURL(input.files[0]);
-    } else {
-        preview.style.display = 'none';
-    }
-}
-</script>
+            <!-- IMAGEN DEL RESTAURANTE - CORREGIDO para Cloudinary -->
+            <div class="form-group">
+                <label><i class="fas fa-image"></i> Imagen del Restaurante</label>
+                <div class="info-text">Sube una imagen principal para mostrar en la lista de restaurantes</div>
+                
+                {% if restaurante.imagen_url %}
+                <div style="margin-bottom: 10px;">
+                    <p>Imagen actual (Cloudinary):</p>
+                    <img src="{{ restaurante.imagen_url }}" 
+                         style="max-width: 200px; max-height: 150px; border-radius: 8px; border: 1px solid #ddd;">
+                </div>
+                {% elif restaurante.imagen_restaurante %}
+                <div style="margin-bottom: 10px;">
+                    <p>Imagen actual (local):</p>
+                    <img src="{{ get_image_url(restaurante.imagen_restaurante, 'restaurante') }}" 
+                         style="max-width: 200px; max-height: 150px; border-radius: 8px; border: 1px solid #ddd;">
+                </div>
+                {% endif %}
+                
+                <input type="file" name="imagen_restaurante" accept="image/*" onchange="previewImagen(this)">
+                <div id="preview-container" style="margin-top: 10px; display: none;">
+                    <p>Nueva imagen:</p>
+                    <img id="imagen-preview" style="max-width: 200px; max-height: 150px; border-radius: 8px; border: 1px solid #ddd;">
+                </div>
+                <small style="color: #666; display: block; margin-top: 5px;">
+                    <i class="fas fa-cloud-upload-alt"></i> La imagen se subirá a Cloudinary automáticamente
+                </small>
+            </div>
 
             <button type="submit" class="btn-actualizar">
                 <i class="fas fa-save"></i> Actualizar Restaurante
@@ -382,7 +279,102 @@ function previewImagen(input) {
         </form>
     </div>
 
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_key }}"></script>
     <script>
+        let map;
+        let marker;
+
+        function initMap() {
+            const lat = parseFloat(document.getElementById('latitud').value) || 18.3445;
+            const lng = parseFloat(document.getElementById('longitud').value) || -99.5403;
+            const ubicacion = { lat, lng };
+            
+            map = new google.maps.Map(document.getElementById('mapa-edicion'), {
+                zoom: 15,
+                center: ubicacion,
+                mapTypeControl: true
+            });
+            
+            marker = new google.maps.Marker({
+                position: ubicacion,
+                map: map,
+                title: '{{ restaurante.nombre }}',
+                draggable: true,
+                animation: google.maps.Animation.DROP
+            });
+            
+            marker.addListener('dragend', function() {
+                const pos = marker.getPosition();
+                document.getElementById('latitud').value = pos.lat();
+                document.getElementById('longitud').value = pos.lng();
+            });
+            
+            map.addListener('click', function(event) {
+                marker.setPosition(event.latLng);
+                document.getElementById('latitud').value = event.latLng.lat();
+                document.getElementById('longitud').value = event.latLng.lng();
+            });
+        }
+
+        function obtenerCoordenadas() {
+            const direccion = document.querySelector('input[name="direccion"]').value;
+            
+            if (!direccion) {
+                alert('Por favor ingresa primero la dirección');
+                return;
+            }
+            
+            const btn = event.target;
+            const textoOriginal = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Obteniendo coordenadas...';
+            btn.disabled = true;
+            
+            fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(direccion)}&key={{ google_maps_key }}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.results && data.results[0]) {
+                        const location = data.results[0].geometry.location;
+                        document.getElementById('latitud').value = location.lat;
+                        document.getElementById('longitud').value = location.lng;
+                        
+                        if (marker) {
+                            marker.setPosition(location);
+                            map.setCenter(location);
+                        }
+                        
+                        alert('✅ Coordenadas actualizadas correctamente');
+                    } else {
+                        alert('❌ No se pudo obtener la ubicación de esa dirección');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('❌ Error al obtener coordenadas');
+                })
+                .finally(() => {
+                    btn.innerHTML = textoOriginal;
+                    btn.disabled = false;
+                });
+        }
+
+        function previewImagen(input) {
+            const preview = document.getElementById('preview-container');
+            const img = document.getElementById('imagen-preview');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    img.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+
         let redSocialCount = {{ restaurante.redes_sociales|length if restaurante.redes_sociales else 0 }};
 
         function agregarRedSocial() {
@@ -416,6 +408,8 @@ function previewImagen(input) {
                 item.remove();
             }
         }
+
+        document.addEventListener('DOMContentLoaded', initMap);
     </script>
 </body>
 </html>

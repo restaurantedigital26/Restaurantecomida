@@ -544,14 +544,18 @@
             {% endif %}
             </p>
 
-            <!-- Imagen del restaurante -->
-            {% if restaurante.imagen_restaurante %}
+            <!-- Imagen del restaurante CORREGIDA -->
             <div style="margin-top: 15px; text-align: center;">
-                <img src="{{ get_image_url(restaurante.imagen_restaurante, 'restaurante') }}" 
-                     alt="{{ restaurante.nombre }}" 
-                     style="max-width: 200px; max-height: 150px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd;">
+                {% if restaurante.imagen_url %}
+                    <img src="{{ restaurante.imagen_url }}" 
+                         alt="{{ restaurante.nombre }}" 
+                         style="max-width: 200px; max-height: 150px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd;">
+                {% elif restaurante.imagen_restaurante %}
+                    <img src="{{ get_image_url(restaurante.imagen_restaurante, 'restaurante') }}" 
+                         alt="{{ restaurante.nombre }}" 
+                         style="max-width: 200px; max-height: 150px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd;">
+                {% endif %}
             </div>
-            {% endif %}
 
             <!-- SECCIÓN DE CALIFICACIONES PARA EL RESTAURANTE -->
             <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd;">
@@ -699,8 +703,10 @@
                     {% for platillo in restaurante.menu %}
                         <div class="platillo-card-scroll" onclick="window.location.href='{{ url_for('detalle_platillo_restaurante', restaurante_id=restaurante._id, platillo_index=loop.index0) }}'">
                             <h3>{{ platillo.nombre }}</h3>
-                            {% if platillo.foto %}
-                                <!-- CORREGIDO: Usar get_image_url con tipo 'platillo' -->
+                            <!-- CORREGIDO: Usar foto_url de Cloudinary o fallback a get_image_url -->
+                            {% if platillo.foto_url %}
+                                <img src="{{ platillo.foto_url }}" alt="{{ platillo.nombre }}">
+                            {% elif platillo.foto %}
                                 <img src="{{ get_image_url(platillo.foto, 'platillo') }}" alt="{{ platillo.nombre }}">
                             {% else %}
                                 <img src="{{ url_for('static', filename='img/default.jpg') }}" alt="Sin imagen" style="opacity: 0.5;">
@@ -735,7 +741,6 @@
                     container.scrollLeft += scrollAmount;
                 }
                 
-                // Actualizar estado de botones
                 setTimeout(() => {
                     document.getElementById('scrollLeftBtn').disabled = container.scrollLeft <= 0;
                     document.getElementById('scrollRightBtn').disabled = 
@@ -743,7 +748,6 @@
                 }, 100);
             }
             
-            // Verificar scroll al cargar
             window.addEventListener('load', function() {
                 const container = document.getElementById('menuScrollContainer');
                 if (container) {
@@ -757,7 +761,6 @@
         </script>
         
         <!-- CHAT (CORREGIDO: cliente izquierda, restaurante derecha) -->
-        <!-- CHAT (MODIFICADO PARA CHATS DE PLATILLOS) -->
         {% if chat_selected %}
             <h2>💬 Chat con {{ chat_selected.cliente_nombre }} 
                 {% if chat_selected.tipo == 'platillo' %}
@@ -779,7 +782,6 @@
             <div class="chat-box" id="chatBox">
                 {% for m in chat_selected.mensajes %}
                     {% if m.tipo == 'Cliente' %}
-                        <!-- Mensaje del cliente a la izquierda -->
                         <div class="mensaje-card mensaje-cliente">
                             <div class="mensaje-header">
                                 <i class="fas fa-user"></i>
@@ -793,7 +795,6 @@
                             </small>
                         </div>
                     {% else %}
-                        <!-- Mensaje del restaurante a la derecha -->
                         <div class="mensaje-card mensaje-restaurante">
                             <div class="mensaje-header">
                                 <i class="fas fa-store"></i>
@@ -834,7 +835,6 @@
 </div>
 
 <script>
-    // Toggle del menú hamburguesa
     const menuToggle = document.getElementById('menuToggle');
     const sidebar = document.getElementById('sidebar');
     const mainPanel = document.getElementById('mainPanel');
@@ -847,15 +847,12 @@
 
     menuToggle.addEventListener('click', toggleMenu);
 
-    // Cambiar entre pestañas
     function switchTab(tab) {
-        // Actualizar botones
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.classList.remove('active');
         });
         event.target.classList.add('active');
 
-        // Actualizar contenido
         document.getElementById('tabChats').classList.remove('active');
         document.getElementById('tabComentarios').classList.remove('active');
         
@@ -866,11 +863,6 @@
         }
     }
 
-    function mostrarChat(clienteId) {
-        window.location.href = "{{ url_for('dashboard_restaurante') }}?cliente=" + clienteId;
-    }
-
-    // Auto-scroll al final del chat
     const chatBox = document.getElementById("chatBox");
     if(chatBox) {
         chatBox.scrollTop = chatBox.scrollHeight;

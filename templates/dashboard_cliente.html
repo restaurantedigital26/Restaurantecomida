@@ -248,7 +248,7 @@
             </a>
         </div>
 
-        <!-- SECCIÓN DE PUBLICIDAD - VISIBLE -->
+        <!-- SECCIÓN DE PUBLICIDAD - CORREGIDA CON imagen_url -->
         {% if publicidad and publicidad|length > 0 %}
         <div class="publicidad-section">
             <h2><i class="fas fa-bullhorn"></i> Ofertas y Promociones</h2>
@@ -259,9 +259,10 @@
                         {{ pub.tipo|upper }}
                     </div>
                     
-                    {% if pub.imagen %}
-                    <!-- CORREGIDO: Usar get_image_url con tipo 'publicidad' -->
-                    <img src="{{ get_image_url(pub.imagen, 'publicidad') }}" alt="{{ pub.titulo }}" class="publicidad-img">
+                    {% if pub.imagen_url %}
+                        <img src="{{ pub.imagen_url }}" alt="{{ pub.titulo }}" class="publicidad-img">
+                    {% elif pub.imagen %}
+                        <img src="{{ get_image_url(pub.imagen, 'publicidad') }}" alt="{{ pub.titulo }}" class="publicidad-img">
                     {% endif %}
                     
                     <div class="publicidad-contenido">

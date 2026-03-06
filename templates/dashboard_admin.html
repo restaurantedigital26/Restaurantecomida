@@ -466,7 +466,7 @@
                 </div>
             </div>
 
-            <!-- SECCIÓN RESTAURANTES - MODIFICADA PARA INCLUIR IMAGEN -->
+            <!-- SECCIÓN RESTAURANTES - MODIFICADA PARA INCLUIR IMAGEN CON CLOUDINARY -->
             <div id="seccion-restaurantes" class="seccion" style="display: none;">
                 <div class="section-header">
                     <h2><i class="fas fa-store"></i> Restaurantes Registrados</h2>
@@ -480,7 +480,7 @@
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th>Imagen</th>  <!-- NUEVA COLUMNA -->
+                                    <th>Imagen</th>
                                     <th>Nombre</th>
                                     <th>Email</th>
                                     <th>Teléfono</th>
@@ -494,7 +494,11 @@
                                 {% for r in restaurantes %}
                                 <tr>
                                     <td>
-                                        {% if r.imagen_restaurante %}
+                                        {% if r.imagen_url %}
+                                            <img src="{{ r.imagen_url }}" 
+                                                 alt="{{ r.nombre }}" 
+                                                 class="img-miniatura">
+                                        {% elif r.imagen_restaurante %}
                                             <img src="{{ get_image_url(r.imagen_restaurante, 'restaurante') }}" 
                                                  alt="{{ r.nombre }}" 
                                                  class="img-miniatura">
@@ -607,89 +611,11 @@
                     </div>
                 </div>
 
-                <style>
-                    .comentarios-grid {
-                        display: grid;
-                        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-                        gap: 20px;
-                        margin-top: 20px;
-                    }
-                    .comentario-card {
-                        background: white;
-                        border-radius: 10px;
-                        padding: 20px;
-                        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                        position: relative;
-                        transition: transform 0.3s, box-shadow 0.3s;
-                        border-left: 4px solid #4CAF50;
-                    }
-                    .comentario-card:hover {
-                        transform: translateY(-3px);
-                        box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-                    }
-                    .comentario-header {
-                        display: flex;
-                        justify-content: space-between;
-                        margin-bottom: 12px;
-                        padding-bottom: 8px;
-                        border-bottom: 1px solid #eee;
-                    }
-                    .comentario-cliente {
-                        font-weight: bold;
-                        color: #4CAF50;
-                    }
-                    .comentario-restaurante {
-                        background: #f0f0f0;
-                        padding: 4px 8px;
-                        border-radius: 4px;
-                        font-size: 0.8rem;
-                        color: #666;
-                    }
-                    .comentario-texto {
-                        color: #333;
-                        line-height: 1.5;
-                        margin: 15px 0;
-                    }
-                    .comentario-fecha {
-                        font-size: 0.8rem;
-                        color: #888;
-                        margin-top: 10px;
-                        padding-top: 8px;
-                        border-top: 1px solid #eee;
-                    }
-                    .btn-eliminar-comentario {
-                        position: absolute;
-                        top: 10px;
-                        right: 10px;
-                        background: #f44336;
-                        color: white;
-                        border: none;
-                        border-radius: 50%;
-                        width: 30px;
-                        height: 30px;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        cursor: pointer;
-                        opacity: 0;
-                        transition: opacity 0.3s;
-                        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-                    }
-                    .comentario-card:hover .btn-eliminar-comentario {
-                        opacity: 1;
-                    }
-                    .btn-eliminar-comentario:hover {
-                        background: #d32f2f;
-                        transform: scale(1.1);
-                    }
-                </style>
-
                 <div class="comentarios-grid" id="comentariosGrid">
                     {% if todos_comentarios and todos_comentarios|length > 0 %}
                         {% for comentario in todos_comentarios %}
                             {% if comentario._id %}
                             <div class="comentario-card" data-restaurante="{{ comentario.restaurante_nombre }}" data-texto="{{ comentario.comentario|lower }}">
-                                <!-- Botón eliminar con validación -->
                                 <form action="{{ url_for('admin_eliminar_comentario', comentario_id=comentario._id) }}" method="POST" style="margin: 0;" onsubmit="return confirm('¿Eliminar este comentario?')">
                                     <button type="submit" class="btn-eliminar-comentario" title="Eliminar comentario">
                                         <i class="fas fa-times"></i>
@@ -797,15 +723,12 @@
 
         // Función para mostrar/ocultar secciones
         function mostrarSeccion(seccion) {
-            // Ocultar todas las secciones
             document.querySelectorAll('.seccion').forEach(el => {
                 el.style.display = 'none';
             });
             
-            // Mostrar la sección seleccionada
             document.getElementById(`seccion-${seccion}`).style.display = 'block';
             
-            // Actualizar links activos
             document.querySelectorAll('.admin-sidebar a').forEach(link => {
                 link.classList.remove('active');
             });
@@ -873,7 +796,6 @@
             document.getElementById('modalCliente').style.display = 'none';
         }
 
-        // Cerrar modal al hacer clic fuera
         window.onclick = function(event) {
             const modal = document.getElementById('modalCliente');
             if (event.target == modal) {
@@ -881,7 +803,6 @@
             }
         }
 
-        // Mostrar dashboard por defecto
         document.addEventListener('DOMContentLoaded', function() {
             mostrarSeccion('dashboard');
         });
