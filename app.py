@@ -156,9 +156,6 @@ def subir_a_cloudinary(archivo, carpeta):
 # =========================
 # MONGODB ATLAS (USANDO VARIABLE DE ENTORNO)
 # =========================
-# =========================
-# MONGODB ATLAS (USANDO VARIABLE DE ENTORNO)
-# =========================
 MONGODB_URI = os.getenv("MONGODB_URI")
 
 if not MONGODB_URI:
