@@ -2,34 +2,627 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Registro de Cliente</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Cliente | Sabores de Iguala</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #f5efe6;  /* Blanco crema de fondo */
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .register-container {
+            max-width: 450px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(139, 69, 19, 0.15);
+            overflow: hidden;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .register-header {
+            background: linear-gradient(135deg, #8B4513, #654321);  /* Café crema degradado */
+            color: #f5efe6;  /* Blanco crema para texto */
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .register-header i {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+            background: rgba(255, 239, 213, 0.2);  /* Crema transparente */
+            padding: 20px;
+            border-radius: 50%;
+            color: #fff8e7;  /* Blanco crema */
+        }
+
+        .register-header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #fff8e7;  /* Blanco crema */
+        }
+
+        .register-header p {
+            opacity: 0.9;
+            font-size: 1rem;
+            color: #fff8e7;  /* Blanco crema */
+        }
+
+        .register-body {
+            padding: 40px 30px;
+            background: #fff8e7;  /* Blanco crema más suave */
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .form-group i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #8B4513;  /* Café crema */
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            border: 2px solid #e0d5c6;  /* Crema más oscuro */
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #8B4513;  /* Café crema */
+            background: white;
+            box-shadow: 0 0 0 4px rgba(139, 69, 19, 0.1);
+        }
+
+        .form-group input.error {
+            border-color: #c43e3e;
+            background: #fff5f5;
+        }
+
+        .form-group .error-message {
+            color: #c43e3e;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: none;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .form-group .error-message.show {
+            display: flex;
+        }
+
+        .password-strength {
+            margin-top: 8px;
+        }
+
+        .strength-bar {
+            height: 4px;
+            background: #e0d5c6;  /* Crema más oscuro */
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+        .strength-bar-fill {
+            height: 100%;
+            width: 0;
+            transition: width 0.3s, background-color 0.3s;
+        }
+
+        .strength-text {
+            font-size: 0.8rem;
+            color: #8B4513;  /* Café crema */
+        }
+
+        .requirements {
+            background: #fff8e7;  /* Blanco crema */
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 25px;
+            font-size: 0.9rem;
+            border: 1px solid #e0d5c6;  /* Crema más oscuro */
+        }
+
+        .requirements p {
+            color: #654321;  /* Café más oscuro */
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .requirements ul {
+            list-style: none;
+            padding-left: 20px;
+        }
+
+        .requirements li {
+            color: #8B4513;  /* Café crema */
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .requirements li i {
+            font-size: 0.8rem;
+            color: #e0d5c6;  /* Crema más oscuro */
+        }
+
+        .requirements li.valid {
+            color: #654321;  /* Café más oscuro */
+        }
+
+        .requirements li.valid i {
+            color: #8B4513;  /* Café crema */
+        }
+
+        .btn-register {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #8B4513, #654321);  /* Café crema degradado */
+            color: #fff8e7;  /* Blanco crema */
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(139, 69, 19, 0.3);
+        }
+
+        .btn-register:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #e0d5c6;  /* Crema más oscuro */
+        }
+
+        .login-link a {
+            color: #8B4513;  /* Café crema */
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .login-link a:hover {
+            color: #654321;  /* Café más oscuro */
+            text-decoration: underline;
+        }
+
+        .terms {
+            margin-top: 15px;
+            font-size: 0.8rem;
+            color: #8B4513;  /* Café crema */
+            text-align: center;
+        }
+
+        .terms a {
+            color: #654321;  /* Café más oscuro */
+            text-decoration: none;
+        }
+
+        .terms a:hover {
+            text-decoration: underline;
+        }
+
+        /* Loading spinner */
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 248, 231, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff8e7;  /* Blanco crema */
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        .btn-register.loading .spinner {
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Notificaciones */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            color: #fff8e7;  /* Blanco crema */
+            font-weight: 500;
+            box-shadow: 0 5px 15px rgba(139, 69, 19, 0.2);
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: linear-gradient(135deg, #8B4513, #654321);  /* Café crema */
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, #c43e3e, #a03333);
+        }
+
+        .notification i {
+            margin-right: 8px;
+        }
+
+        @media (max-width: 480px) {
+            .register-header {
+                padding: 30px 20px;
+            }
+
+            .register-body {
+                padding: 30px 20px;
+            }
+
+            .register-header h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
-
-<div class="chat-container">
-    <h1>Registro de Cliente</h1>
-    
-    <p style="text-align: center; color: #666; margin-bottom: 20px;">
-        <i class="fas fa-user"></i> Crea tu cuenta para disfrutar de la experiencia
-    </p>
-
-    <form method="POST">
-        <input type="text" name="nombre" placeholder="Nombre completo" required>
-
-        <input type="email" name="email" placeholder="Correo electrónico" required>
-
-        <input type="password" name="password" placeholder="Contraseña" required>
-
-        <button type="submit">
-            Registrarse como Cliente
-        </button>
-    </form>
-
-    <div class="footer">
-        ¿Ya tienes cuenta? <a href="/login">Inicia sesión</a>
+    <!-- Notificación flotante -->
+    <div class="notification" id="notification">
+        <i class="fas"></i>
+        <span id="notification-message"></span>
     </div>
-</div>
 
+    <div class="register-container">
+        <div class="register-header">
+            <i class="fas fa-user-plus"></i>
+            <h1>Crear Cuenta</h1>
+            <p>Únete a Sabores de Iguala</p>
+        </div>
+
+        <div class="register-body">
+            <form id="registerForm" method="POST" onsubmit="return validateForm(event)">
+                <!-- Nombre -->
+                <div class="form-group">
+                    <i class="fas fa-user"></i>
+                    <input 
+                        type="text" 
+                        name="nombre" 
+                        id="nombre"
+                        placeholder="Nombre completo" 
+                        required
+                        minlength="3"
+                        maxlength="50"
+                        oninput="validateNombre()"
+                    >
+                    <div class="error-message" id="nombre-error">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span></span>
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div class="form-group">
+                    <i class="fas fa-envelope"></i>
+                    <input 
+                        type="email" 
+                        name="email" 
+                        id="email"
+                        placeholder="Correo electrónico" 
+                        required
+                        oninput="validateEmail()"
+                    >
+                    <div class="error-message" id="email-error">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span></span>
+                    </div>
+                </div>
+
+                <!-- Contraseña -->
+                <div class="form-group">
+                    <i class="fas fa-lock"></i>
+                    <input 
+                        type="password" 
+                        name="password" 
+                        id="password"
+                        placeholder="Contraseña" 
+                        required
+                        minlength="8"
+                        oninput="validatePassword()"
+                    >
+                    
+                    <!-- Barra de fortaleza -->
+                    <div class="password-strength">
+                        <div class="strength-bar">
+                            <div class="strength-bar-fill" id="strength-bar"></div>
+                        </div>
+                        <span class="strength-text" id="strength-text">Ingresa una contraseña</span>
+                    </div>
+                </div>
+
+                <!-- Requisitos de contraseña -->
+                <div class="requirements">
+                    <p><i class="fas fa-shield-alt"></i> Tu contraseña debe tener:</p>
+                    <ul id="password-requirements">
+                        <li id="req-length" class="">
+                            <i class="fas fa-circle"></i> Mínimo 8 caracteres
+                        </li>
+                        <li id="req-uppercase" class="">
+                            <i class="fas fa-circle"></i> Al menos una mayúscula
+                        </li>
+                        <li id="req-lowercase" class="">
+                            <i class="fas fa-circle"></i> Al menos una minúscula
+                        </li>
+                        <li id="req-number" class="">
+                            <i class="fas fa-circle"></i> Al menos un número
+                        </li>
+                        <li id="req-special" class="">
+                            <i class="fas fa-circle"></i> Al menos un carácter especial (!@#$%^&*)
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Botón de registro -->
+                <button type="submit" class="btn-register" id="submit-btn">
+                    <span>Registrarse como Cliente</span>
+                    <span class="spinner"></span>
+                </button>
+            </form>
+
+            <div class="login-link">
+                ¿Ya tienes cuenta? <a href="/login">Inicia sesión aquí</a>
+            </div>
+
+            <div class="terms">
+                Al registrarte, aceptas nuestros <a href="#">Términos de servicio</a> y 
+                <a href="#">Política de privacidad</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let isNombreValid = false;
+        let isEmailValid = false;
+        let isPasswordValid = false;
+
+        // Mostrar notificación
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            const messageEl = document.getElementById('notification-message');
+            const icon = notification.querySelector('.fas');
+            
+            notification.classList.remove('success', 'error', 'show');
+            notification.classList.add(type, 'show');
+            
+            icon.className = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+            messageEl.textContent = message;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 5000);
+        }
+
+        // Validar nombre
+        function validateNombre() {
+            const nombre = document.getElementById('nombre');
+            const errorDiv = document.getElementById('nombre-error');
+            const errorSpan = errorDiv.querySelector('span');
+            
+            nombre.classList.remove('error');
+            errorDiv.classList.remove('show');
+            
+            if (nombre.value.length < 3) {
+                nombre.classList.add('error');
+                errorSpan.textContent = 'El nombre debe tener al menos 3 caracteres';
+                errorDiv.classList.add('show');
+                isNombreValid = false;
+            } else if (nombre.value.length > 50) {
+                nombre.classList.add('error');
+                errorSpan.textContent = 'El nombre no puede tener más de 50 caracteres';
+                errorDiv.classList.add('show');
+                isNombreValid = false;
+            } else {
+                isNombreValid = true;
+            }
+            
+            updateSubmitButton();
+        }
+
+        // Validar email
+        function validateEmail() {
+            const email = document.getElementById('email');
+            const errorDiv = document.getElementById('email-error');
+            const errorSpan = errorDiv.querySelector('span');
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            
+            email.classList.remove('error');
+            errorDiv.classList.remove('show');
+            
+            if (!emailRegex.test(email.value)) {
+                email.classList.add('error');
+                errorSpan.textContent = 'Ingresa un correo electrónico válido';
+                errorDiv.classList.add('show');
+                isEmailValid = false;
+            } else {
+                isEmailValid = true;
+            }
+            
+            updateSubmitButton();
+        }
+
+        // Validar contraseña y actualizar requisitos
+        function validatePassword() {
+            const password = document.getElementById('password').value;
+            
+            // Requisitos
+            const hasLength = password.length >= 8;
+            const hasUpperCase = /[A-Z]/.test(password);
+            const hasLowerCase = /[a-z]/.test(password);
+            const hasNumber = /\d/.test(password);
+            const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+            
+            // Actualizar indicadores visuales
+            updateRequirement('req-length', hasLength);
+            updateRequirement('req-uppercase', hasUpperCase);
+            updateRequirement('req-lowercase', hasLowerCase);
+            updateRequirement('req-number', hasNumber);
+            updateRequirement('req-special', hasSpecial);
+            
+            // Calcular fortaleza
+            const strength = [hasLength, hasUpperCase, hasLowerCase, hasNumber, hasSpecial].filter(Boolean).length;
+            updateStrengthBar(strength);
+            
+            // Validar contraseña
+            isPasswordValid = hasLength && hasUpperCase && hasLowerCase && hasNumber && hasSpecial;
+            
+            updateSubmitButton();
+        }
+
+        function updateRequirement(elementId, isValid) {
+            const element = document.getElementById(elementId);
+            const icon = element.querySelector('i');
+            
+            if (isValid) {
+                element.classList.add('valid');
+                icon.className = 'fas fa-check-circle';
+            } else {
+                element.classList.remove('valid');
+                icon.className = 'fas fa-circle';
+            }
+        }
+
+        function updateStrengthBar(strength) {
+            const bar = document.getElementById('strength-bar');
+            const text = document.getElementById('strength-text');
+            
+            const strengthLevels = [
+                { width: '20%', color: '#c43e3e', text: 'Muy débil' },
+                { width: '40%', color: '#e67e22', text: 'Débil' },
+                { width: '60%', color: '#f1c40f', text: 'Regular' },
+                { width: '80%', color: '#8B4513', text: 'Buena' },
+                { width: '100%', color: '#654321', text: 'Excelente' }
+            ];
+            
+            const level = strength > 0 ? strength - 1 : 0;
+            bar.style.width = strengthLevels[level].width;
+            bar.style.backgroundColor = strengthLevels[level].color;
+            text.textContent = strengthLevels[level].text;
+        }
+
+        function updateSubmitButton() {
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.disabled = !(isNombreValid && isEmailValid && isPasswordValid);
+        }
+
+        // Validar formulario antes de enviar
+        function validateForm(event) {
+            event.preventDefault();
+            
+            // Validar todo nuevamente
+            validateNombre();
+            validateEmail();
+            validatePassword();
+            
+            if (!isNombreValid || !isEmailValid || !isPasswordValid) {
+                showNotification('Por favor, corrige los errores en el formulario', 'error');
+                return false;
+            }
+            
+            // Mostrar loading
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.classList.add('loading');
+            submitBtn.disabled = true;
+            
+            // Enviar formulario
+            const form = document.getElementById('registerForm');
+            
+            fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form)
+            })
+            .then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (!response.ok) {
+                    return response.text().then(text => { throw new Error(text); });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Error al registrar. Intenta de nuevo.', 'error');
+                submitBtn.classList.remove('loading');
+                submitBtn.disabled = false;
+            });
+            
+            return false;
+        }
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mostrar mensajes flash si existen
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        showNotification('{{ message }}', '{{ category }}');
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        });
+    </script>
 </body>
 </html>

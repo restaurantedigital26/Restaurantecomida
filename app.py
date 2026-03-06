@@ -8,6 +8,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import uuid
 import datetime
+from datetime import datetime, timezone
 import sys
 import mimetypes
 from urllib.parse import unquote, quote
@@ -80,9 +81,9 @@ print("="*60)
 # =========================
 # CLOUDINARY CONFIGURATION
 # =========================
-import cloudinary  # type: ignore
-import cloudinary.uploader  # type: ignore
-import cloudinary.api  # type: ignore
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 
 CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME")
 CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY")
@@ -155,6 +156,9 @@ def subir_a_cloudinary(archivo, carpeta):
 # =========================
 # MONGODB ATLAS (USANDO VARIABLE DE ENTORNO)
 # =========================
+# =========================
+# MONGODB ATLAS (USANDO VARIABLE DE ENTORNO)
+# =========================
 MONGODB_URI = os.getenv("MONGODB_URI")
 
 if not MONGODB_URI:
@@ -202,6 +206,200 @@ try:
         print("✅ Administrador por defecto creado (admin/admin123)")
 except Exception as e:
     print(f"⚠️ Error al crear administrador: {e}")
+
+# =========================
+# FLASK-MAIL CONFIGURATION
+# =========================
+from flask_mail import Mail, Message
+
+# --- DIAGNÓSTICO ---
+print("="*50)
+print("🔍 VERIFICANDO VARIABLES DE ENTORNO")
+mail_user = os.environ.get('MAIL_USERNAME')
+mail_pass = os.environ.get('MAIL_PASSWORD')
+print(f"MAIL_USERNAME: '{mail_user}'")
+print(f"MAIL_PASSWORD: {'✅ Configurada' if mail_pass else '❌ No configurada'} (longitud: {len(mail_pass or '')})")
+print("="*50)
+# --- FIN DIAGNÓSTICO ---
+
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587  # Primero prueba con 587/TLS
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+app.config['MAIL_USERNAME'] = mail_user
+app.config['MAIL_PASSWORD'] = mail_pass
+app.config['MAIL_DEFAULT_SENDER'] = mail_user  # ← CORREGIDO: solo el email
+app.config['MAIL_MAX_EMAILS'] = None
+app.config['MAIL_ASCII_ATTACHMENTS'] = False
+
+mail = Mail(app)
+
+# =========================
+# FUNCIONES DE CORREO
+# =========================
+def enviar_correo_bienvenida(email, nombre):
+    """Envía correo de bienvenida a nuevos usuarios"""
+    try:
+        msg = Message(
+            subject="🎉 ¡Bienvenido a Sabores de Iguala!",
+            sender=app.config['MAIL_USERNAME'],  # ← ¡ESTA ES LA LÍNEA CLAVE!
+            recipients=[email],
+            html=f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body {{
+                        font-family: Arial, sans-serif;
+                        line-height: 1.6;
+                        color: #333;
+                    }}
+                    .container {{
+                        max-width: 600px;
+                        margin: 0 auto;
+                        padding: 20px;
+                        background: linear-gradient(135deg, #fff8e7, #fff);
+                    }}
+                    .header {{
+                        background: linear-gradient(135deg, #8B4513, #654321);
+                        color: white;
+                        padding: 30px;
+                        text-align: center;
+                        border-radius: 10px 10px 0 0;
+                    }}
+                    .content {{
+                        padding: 30px;
+                        background: white;
+                    }}
+                    .button {{
+                        display: inline-block;
+                        padding: 12px 24px;
+                        background: #8B4513;
+                        color: white;
+                        text-decoration: none;
+                        border-radius: 5px;
+                        margin: 20px 0;
+                    }}
+                    .footer {{
+                        text-align: center;
+                        padding: 20px;
+                        color: #666;
+                        font-size: 0.9rem;
+                        border-top: 1px solid #e0d5c6;
+                    }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>🎊 ¡Bienvenido, {nombre}!</h1>
+                    </div>
+                    <div class="content">
+                        <h2>Gracias por unirte a Sabores de Iguala</h2>
+                        <p>Estamos emocionados de tenerte en nuestra comunidad gastronómica. Ahora puedes:</p>
+                        <ul>
+                            <li>🍽️ Explorar los mejores restaurantes de Iguala</li>
+                            <li>⭐ Calificar y comentar tus experiencias</li>
+                            <li>💬 Chatear directamente con los restaurantes</li>
+                            <li>🎁 Descubrir promociones exclusivas</li>
+                        </ul>
+                        <p>¿Listo para comenzar tu aventura culinaria?</p>
+                        <a href="http://127.0.0.1:5000/dashboard-cliente" class="button">Explorar Restaurantes</a>
+                    </div>
+                    <div class="footer">
+                        <p>© 2024 Sabores de Iguala - Todos los derechos reservados</p>
+                        <p style="font-size: 0.8rem;">Este correo fue enviado a {email}</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """
+        )
+        mail.send(msg)
+        print(f"✅ Correo de bienvenida enviado a {email}")
+        return True
+    except Exception as e:
+        print(f"❌ Error enviando correo de bienvenida: {e}")
+        return False
+
+def enviar_correo_recuperacion(email, token):
+    """Envía correo para recuperación de contraseña"""
+    try:
+        msg = Message(
+            subject="🔐 Recuperación de contraseña - Sabores de Iguala",
+            recipients=[email],
+            html=f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body {{
+                        font-family: Arial, sans-serif;
+                        line-height: 1.6;
+                        color: #333;
+                    }}
+                    .container {{
+                        max-width: 600px;
+                        margin: 0 auto;
+                        padding: 20px;
+                    }}
+                    .header {{
+                        background: linear-gradient(135deg, #8B4513, #654321);
+                        color: white;
+                        padding: 30px;
+                        text-align: center;
+                        border-radius: 10px 10px 0 0;
+                    }}
+                    .content {{
+                        padding: 30px;
+                        background: #fff8e7;
+                    }}
+                    .token-box {{
+                        background: white;
+                        border: 2px solid #8B4513;
+                        border-radius: 5px;
+                        padding: 15px;
+                        text-align: center;
+                        font-size: 1.2rem;
+                        font-weight: bold;
+                        margin: 20px 0;
+                    }}
+                    .footer {{
+                        text-align: center;
+                        padding: 20px;
+                        color: #666;
+                        font-size: 0.9rem;
+                    }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>🔐 Recuperación de Contraseña</h1>
+                    </div>
+                    <div class="content">
+                        <p>Hemos recibido una solicitud para restablecer tu contraseña.</p>
+                        <p>Tu código de recuperación es:</p>
+                        <div class="token-box">
+                            {token}
+                        </div>
+                        <p>Este código expirará en 1 hora por seguridad.</p>
+                        <p>Si no solicitaste este cambio, ignora este correo.</p>
+                    </div>
+                    <div class="footer">
+                        <p>© 2024 Sabores de Iguala</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """
+        )
+        mail.send(msg)
+        print(f"✅ Correo de recuperación enviado a {email}")
+        return True
+    except Exception as e:
+        print(f"❌ Error enviando correo de recuperación: {e}")
+        return False
 
 # =========================
 # INICIALIZAR CAMPOS DE CALIFICACIÓN PARA RESTAURANTES EXISTENTES
@@ -720,14 +918,17 @@ def register():
             "email": email,
             "password": password,
             "tipo": tipo,
-            "fecha_registro": datetime.datetime.utcnow()
+            "fecha_registro": datetime.now(timezone.utc)
         }
 
         usuarios.insert_one(usuario)
+        
+        # ===== NUEVO: Enviar correo de bienvenida =====
+        enviar_correo_bienvenida(email, nombre)
+        
         return redirect(url_for("login"))
 
     return render_template("register.html")
-
 # =========================
 # LOGIN
 # =========================
