@@ -1797,8 +1797,8 @@ def detalle_restaurante(id):
             restaurante[campo] = 0.0 if 'promedio' in campo else 0
 
     # Obtener publicidad activa de ESTE restaurante
-    ahora = datetime.datetime.now(datetime.utc)
-    print(f"🔍 Buscando publicidad para restaurante {id}")  # Debug
+    ahora = datetime.now(timezone.utc)  # ← CORREGIDO
+    print(f"🔍 Buscando publicidad para restaurante {id}")
     
     publicidad_activa = list(db.publicidad.find({
         "restaurante_id": ObjectId(id),
@@ -1810,7 +1810,7 @@ def detalle_restaurante(id):
         ]
     }).sort("fecha_creacion", -1))
     
-    print(f"📊 Publicaciones encontradas para este restaurante: {len(publicidad_activa)}")  # Debug
+    print(f"📊 Publicaciones encontradas para este restaurante: {len(publicidad_activa)}")
     restaurante['publicidad_activa'] = publicidad_activa
 
     # Traer TODOS los comentarios del restaurante
