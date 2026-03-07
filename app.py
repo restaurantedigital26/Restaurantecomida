@@ -1797,7 +1797,7 @@ def detalle_restaurante(id):
             restaurante[campo] = 0.0 if 'promedio' in campo else 0
 
     # Obtener publicidad activa de ESTE restaurante
-    ahora = datetime.now(timezone.utc)  # ← CORREGIDO
+    ahora = datetime.now(timezone.utc)  # ← ¡ESTA ES LA LÍNEA CORRECTA!
     print(f"🔍 Buscando publicidad para restaurante {id}")
     
     publicidad_activa = list(db.publicidad.find({
