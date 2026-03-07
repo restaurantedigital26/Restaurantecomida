@@ -1051,7 +1051,7 @@ def admin_crear_restaurante():
             "email": email,
             "password": password,
             "tipo": "restaurante",
-            "fecha_registro": datetime.datetime.now(datetime.UTC),
+            "fecha_registro": datetime.now(timezone.utc),  # ← CORREGIDO
             "creado_por": session.get("user_id")
         }
         result = usuarios.insert_one(usuario)
@@ -1078,12 +1078,12 @@ def admin_crear_restaurante():
             "sitio_web": sitio_web,
             "redes_sociales": redes_sociales,
             "ubicacion": ubicacion,
-            "imagen_restaurante": None,  # Ya no usamos nombre local
+            "imagen_restaurante": None,
             "imagen_url": imagen_url,
             "imagen_public_id": imagen_public_id,
             "menu": [],
             "usuario_id": result.inserted_id,
-            "fecha_creacion": datetime.datetime.now(datetime.UTC)
+            "fecha_creacion": datetime.now(timezone.utc)  # ← CORREGIDO
         }
         
         result_rest = restaurantes.insert_one(restaurante_data)
