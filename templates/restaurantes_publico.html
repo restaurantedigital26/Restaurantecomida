@@ -2,9 +2,46 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Restaurantes - Sabores de Iguala</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- TÍTULO SEO -->
+    <title>Restaurantes en Iguala - Directorio completo | comidaIguala</title>
+    
+    <!-- DESCRIPCIÓN -->
+    <meta name="description" content="Directorio completo de restaurantes en Iguala, Guerrero. Encuentra dónde comer pozole, cochinita, tamales de nejo y más. Calificaciones, menús y promociones.">
+    
+    <!-- PALABRAS CLAVE -->
+    <meta name="keywords" content="restaurantes Iguala, directorio restaurantes Iguala, dónde comer en Iguala, comida tradicional Iguala, restaurantes cerca de mí Iguala">
+    
+    <!-- AUTOR Y ROBOTS -->
+    <meta name="author" content="comidaIguala">
+    <meta name="robots" content="index, follow">
+    
+    <!-- OPEN GRAPH (para compartir en redes) -->
+    <meta property="og:title" content="Restaurantes en Iguala - Directorio completo">
+    <meta property="og:description" content="Explora los mejores restaurantes de Iguala. Encuentra desde pozole tradicional hasta antojitos mexicanos.">
+    <meta property="og:image" content="{{ url_for('static', filename='img/logo.png', _external=True) }}">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="comidaIguala">
+    
+    <!-- TWITTER CARDS -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Restaurantes en Iguala">
+    <meta name="twitter:description" content="Directorio completo de restaurantes en Iguala">
+    <meta name="twitter:image" content="{{ url_for('static', filename='img/logo.png', _external=True) }}">
+    
+    <!-- CANÓNICA -->
+    <link rel="canonical" href="{{ request.url }}">
+    
+    <!-- ICONO -->
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    
+    <!-- TUS ESTILOS EXISTENTES -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- ESTILOS EXISTENTES -->
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -319,7 +356,7 @@
 </head>
 <body>
     <div class="main-container">
-        <!-- TÍTULO PRINCIPAL SIMPLE -->
+        <!-- TÍTULO PRINCIPAL -->
         <div class="page-title">
             <h1><i class="fas fa-store"></i> Restaurantes en Iguala</h1>
             <p>Descubre los mejores lugares para comer en nuestra ciudad</p>
@@ -343,10 +380,10 @@
             <div class="restaurantes-scroll">
                 {% for r in restaurantes %}
                 <div class="card-scroll" onclick="window.location.href='{{ url_for('detalle_restaurante_publico', id=r._id) }}'">
-                    <!-- CORREGIDO: Usar imagen_url para Cloudinary -->
+                    <!-- Imagen del restaurante desde Cloudinary -->
                     {% if r.imagen_url %}
                         <img src="{{ r.imagen_url }}" 
-                             alt="{{ r.nombre }}" 
+                             alt="{{ r.nombre }} - Restaurante en Iguala" 
                              class="card-img">
                     {% else %}
                         <div class="card-img-placeholder">
@@ -399,7 +436,7 @@
         
         <!-- FOOTER -->
         <div class="footer">
-            <p>© 2026 Sabores de Iguala - Todos los derechos reservados</p>
+            <p>© 2026 comidaIguala - Todos los derechos reservados</p>
         </div>
     </div>
 

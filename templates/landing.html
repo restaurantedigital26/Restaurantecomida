@@ -2,8 +2,48 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Sabores de Iguala</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- TÍTULO PRINCIPAL (lo más importante para Google) -->
+    <title>comidaIguala - Guía de restaurantes en Iguala, Guerrero</title>
+    
+    <!-- DESCRIPCIÓN (aparece en resultados de búsqueda) -->
+    <meta name="description" content="Descubre los mejores restaurantes de Iguala. Encuentra pozole tradicional, cochinita estilo Iguala, tamales de nejo y más. Opiniones reales, promociones y mapas de ubicación.">
+    
+    <!-- PALABRAS CLAVE (ayudan a dar contexto) -->
+    <meta name="keywords" content="comida Iguala, restaurantes Iguala, pozole Iguala, cochinita estilo Iguala, tamales de nejo, barbacoa Iguala, dónde comer en Iguala, gastronomía guerrerense">
+    
+    <!-- AUTOR Y ROBOTS -->
+    <meta name="author" content="comidaIguala">
+    <meta name="robots" content="index, follow">
+    
+    <!-- OPEN GRAPH (para compartir en Facebook, WhatsApp, etc) -->
+    <meta property="og:title" content="comidaIguala - Los mejores restaurantes de Iguala">
+    <meta property="og:description" content="Explora restaurantes, califica platillos y descubre promociones exclusivas en Iguala.">
+    <meta property="og:image" content="{{ url_for('static', filename='img/logo.png', _external=True) }}">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="comidaIguala">
+    
+    <!-- TWITTER CARDS (para compartir en Twitter) -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="comidaIguala">
+    <meta name="twitter:description" content="Encuentra los mejores lugares para comer en Iguala">
+    <meta name="twitter:image" content="{{ url_for('static', filename='img/logo.png', _external=True) }}">
+    
+    <!-- CANÓNICA (evita contenido duplicado) -->
+    <link rel="canonical" href="{{ request.url }}">
+    
+    <!-- ICONO -->
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    
+    <!-- TUS ESTILOS EXISTENTES -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    
+    <!-- ESPACIO PARA GOOGLE SEARCH CONSOLE (lo agregaremos después) -->
+    <!-- <meta name="google-site-verification" content="TU_CODIGO_AQUI"> -->
+    
+    <title>Sabores de Iguala</title> <!-- ESTA LÍNEA SOBRA, LA ELIMINAMOS -->
 </head>
 <body class="landing-body">
     <header class="top-bar">

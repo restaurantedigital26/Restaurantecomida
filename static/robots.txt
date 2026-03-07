@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /dashboard-admin/
+Disallow: /dashboard-cliente/
+Disallow: /dashboard-restaurante/
+Disallow: /login
+Disallow: /register
+
+Sitemap: https://comidaiguala.onrender.com/sitemap.xml

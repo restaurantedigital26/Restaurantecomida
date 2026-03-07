@@ -2591,6 +2591,21 @@ INSTRUCCIONES IMPORTANTES:
         return jsonify({"error": "Error procesando la consulta"}), 500
 
 # =========================
+# SEO - SITEMAP
+# =========================
+from datetime import datetime, timezone
+
+@app.route('/sitemap.xml')
+def sitemap():
+    """Genera sitemap.xml para Google"""
+    restaurantes_lista = list(restaurantes.find({}))
+    now = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    
+    return render_template('sitemap.xml', 
+                          restaurantes=restaurantes_lista,
+                          now=now)        
+
+# =========================
 # EJECUCIÓN
 # =========================
 if __name__ == "__main__":

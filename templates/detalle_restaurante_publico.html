@@ -2,9 +2,74 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>{{ restaurante.nombre }} - Vista Pública</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- TÍTULO DINÁMICO con nombre del restaurante -->
+    <title>{{ restaurante.nombre }} | comidaIguala</title>
+    
+    <!-- DESCRIPCIÓN DINÁMICA (se adapta a cada restaurante) -->
+    <meta name="description" content="{% if restaurante.descripcion %}{{ restaurante.descripcion|truncate(150) }}. {% endif %}Dirección: {{ restaurante.direccion or 'No disponible' }}. Teléfono: {{ restaurante.telefono or 'No disponible' }}. Calificación: {{ restaurante.promedio_general or 'Nuevo' }} estrellas basada en {{ restaurante.total_calificaciones or 0 }} opiniones.">
+    
+    <!-- PALABRAS CLAVE ESPECÍFICAS DEL RESTAURANTE -->
+    <meta name="keywords" content="{{ restaurante.nombre }}, restaurante en Iguala, comida en Iguala, {% for platillo in restaurante.menu[:3] %}{{ platillo.nombre }}, {% endfor %}restaurantes cerca de mí, dónde comer en Iguala">
+    
+    <!-- AUTOR Y ROBOTS -->
+    <meta name="author" content="comidaIguala">
+    <meta name="robots" content="index, follow">
+    
+    <!-- OPEN GRAPH con imagen del restaurante -->
+    <meta property="og:title" content="{{ restaurante.nombre }} | comidaIguala">
+    <meta property="og:description" content="{% if restaurante.descripcion %}{{ restaurante.descripcion|truncate(100) }}{% else %}Conoce {{ restaurante.nombre }} en Iguala.{% endif %} Dirección: {{ restaurante.direccion }}. Teléfono: {{ restaurante.telefono }}.">
+    <meta property="og:image" content="{% if restaurante.imagen_url %}{{ restaurante.imagen_url }}{% else %}{{ url_for('static', filename='img/logo.png', _external=True) }}{% endif %}">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:type" content="restaurant">
+    <meta property="og:site_name" content="comidaIguala">
+    
+    <!-- TWITTER CARDS -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ restaurante.nombre }} | comidaIguala">
+    <meta name="twitter:description" content="{% if restaurante.descripcion %}{{ restaurante.descripcion|truncate(100) }}{% else %}Restaurante en Iguala{% endif %}">
+    <meta name="twitter:image" content="{% if restaurante.imagen_url %}{{ restaurante.imagen_url }}{% else %}{{ url_for('static', filename='img/logo.png', _external=True) }}{% endif %}">
+    
+    <!-- CANÓNICA -->
+    <link rel="canonical" href="{{ request.url }}">
+    
+    <!-- ICONO -->
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    
+    <!-- DATOS ESTRUCTURADOS (Schema.org para restaurantes - Google lo ama) -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Restaurant",
+        "name": "{{ restaurante.nombre }}",
+        "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "{{ restaurante.direccion }}",
+            "addressLocality": "Iguala",
+            "addressRegion": "Guerrero",
+            "addressCountry": "MX"
+        },
+        "telephone": "{{ restaurante.telefono }}",
+        {% if restaurante.imagen_url %}
+        "image": "{{ restaurante.imagen_url }}",
+        {% endif %}
+        {% if restaurante.promedio_general %}
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "{{ restaurante.promedio_general }}",
+            "reviewCount": "{{ restaurante.total_calificaciones }}"
+        },
+        {% endif %}
+        "servesCuisine": ["Mexican", "Traditional", "Guerrero Cuisine"],
+        "priceRange": "$$"
+    }
+    </script>
+    
+    <!-- TUS ESTILOS EXISTENTES -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -313,11 +378,11 @@
             </a>
         </div>
 
-        <!-- Imagen del restaurante CORREGIDA -->
+        <!-- Imagen del restaurante desde Cloudinary -->
         {% if restaurante.imagen_url %}
         <div style="text-align: center; margin-bottom: 20px;">
             <img src="{{ restaurante.imagen_url }}" 
-                 alt="{{ restaurante.nombre }}" 
+                 alt="{{ restaurante.nombre }} - Restaurante en Iguala" 
                  style="max-width: 100%; max-height: 300px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
         </div>
         {% endif %}
@@ -381,14 +446,14 @@
             </div>
         </div>
 
-        <!-- PUBLICIDAD CON IMÁGENES CORREGIDAS -->
+        <!-- PUBLICIDAD CON IMÁGENES DESDE CLOUDINARY -->
         {% if restaurante.publicidad_activa and restaurante.publicidad_activa|length > 0 %}
             {% for pub in restaurante.publicidad_activa %}
             <div class="publicidad-card">
                 {% if pub.imagen_url %}
                 <div style="margin-bottom: 10px;">
                     <img src="{{ pub.imagen_url }}" 
-                         alt="{{ pub.titulo }}" 
+                         alt="{{ pub.titulo }} - Promoción en {{ restaurante.nombre }}" 
                          style="width: 100%; max-height: 150px; object-fit: cover; border-radius: 5px;">
                 </div>
                 {% endif %}
@@ -404,7 +469,7 @@
             {% endfor %}
         {% endif %}
 
-        <!-- MENÚ CON IMÁGENES CORREGIDAS -->
+        <!-- MENÚ CON IMÁGENES DESDE CLOUDINARY -->
         <h2 class="menu-titulo"><i class="fas fa-utensils"></i> Menú</h2>
         {% if restaurante.menu %}
             <div class="menu-scroll-container">
@@ -412,7 +477,7 @@
                     {% for platillo in restaurante.menu %}
                     <div class="platillo-card">
                         {% if platillo.foto_url %}
-                            <img src="{{ platillo.foto_url }}" alt="{{ platillo.nombre }}">
+                            <img src="{{ platillo.foto_url }}" alt="{{ platillo.nombre }} en {{ restaurante.nombre }}">
                         {% else %}
                             <div style="width: 100%; height: 120px; background: linear-gradient(135deg, #7a3e1d, #4CAF50); display: flex; align-items: center; justify-content: center; color: white;">
                                 <i class="fas fa-utensils" style="font-size: 2rem;"></i>
@@ -433,7 +498,7 @@
 
         <!-- COMENTARIOS -->
         <div class="comentarios-section">
-            <h2><i class="fas fa-comments"></i> Comentarios</h2>
+            <h2><i class="fas fa-comments"></i> Comentarios de clientes</h2>
             {% if comentarios %}
                 {% for c in comentarios[:5] %}
                 <div class="comentario-item">
@@ -441,11 +506,11 @@
                         <span class="comentario-nombre">{{ c.cliente_nombre }}</span>
                         <span>{{ c.fecha.strftime("%d/%m/%Y") if c.fecha else '' }}</span>
                     </div>
-                    <p>{{ c.comentario }}</p>
+                    <p>"{{ c.comentario }}"</p>
                 </div>
                 {% endfor %}
             {% else %}
-                <p style="color: #666;">No hay comentarios</p>
+                <p style="color: #666;">No hay comentarios aún. ¡Sé el primero en opinar!</p>
             {% endif %}
         </div>
 
@@ -466,7 +531,7 @@
         </div>
         
         <div class="footer">
-            <p>© 2024 Sabores de Iguala</p>
+            <p>© 2024 comidaIguala - Todos los derechos reservados</p>
         </div>
     </div>
 </body>
