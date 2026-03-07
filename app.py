@@ -1941,7 +1941,7 @@ def responder_chat_platillo(chat_id):
     return redirect(url_for("dashboard_restaurante", chat_id=chat_id))
 
 # =========================
-# RESTAURANTE - RESPONDER CHAT GENERAL
+# RESTAURANTE - RESPONDER CHAT GENERAL (CORREGIDO)
 # =========================
 @app.route("/dashboard-restaurante/responder-chat-general/<chat_id>", methods=["POST"])
 def responder_chat_general(chat_id):
@@ -1962,7 +1962,7 @@ def responder_chat_general(chat_id):
         nuevo_mensaje = {
             "tipo": "Restaurante",
             "texto": mensaje,
-            "fecha": datetime.datetime.utcnow()
+            "fecha": datetime.now(timezone.utc)  # ← CORREGIDO
         }
 
         # Actualizar el chat
@@ -2397,7 +2397,7 @@ def enviar_chat(id):
     return redirect(url_for("detalle_restaurante", id=id))
 
 # =========================
-# CONFIGURACIÓN IA POR PLATILLO
+# CONFIGURACIÓN IA POR PLATILLO (CORREGIDO)
 # =========================
 @app.route("/restaurante/<restaurante_id>/platillo/<int:platillo_index>/configurar-ia", methods=["GET", "POST"])
 def configurar_ia_platillo(restaurante_id, platillo_index):
@@ -2419,11 +2419,11 @@ def configurar_ia_platillo(restaurante_id, platillo_index):
     platillo = menu[platillo_index]
 
     if request.method == "POST":
-        # Procesar ingredientes (separar por líneas)
+        # Procesar ingredientes
         ingredientes_text = request.form.get("ingredientes", "")
         ingredientes = [i.strip() for i in ingredientes_text.split("\n") if i.strip()]
         
-        # Procesar alérgenos (separar por comas)
+        # Procesar alérgenos
         alergenos_text = request.form.get("alergenos", "")
         alergenos = [a.strip() for a in alergenos_text.split(",") if a.strip()]
         
@@ -2431,7 +2431,7 @@ def configurar_ia_platillo(restaurante_id, platillo_index):
         personalizaciones_text = request.form.get("personalizaciones", "")
         personalizaciones = [p.strip() for p in personalizaciones_text.split("\n") if p.strip()]
         
-        # Procesar FAQs (formato: pregunta|respuesta)
+        # Procesar FAQs
         faqs_text = request.form.get("faqs", "")
         faqs = []
         for linea in faqs_text.split("\n"):
@@ -2452,7 +2452,7 @@ def configurar_ia_platillo(restaurante_id, platillo_index):
             "alergenos": alergenos,
             "personalizaciones": personalizaciones,
             "faqs": faqs,
-            "actualizado": datetime.datetime.now(datetime.UTC)
+            "actualizado": datetime.now(timezone.utc)  # ← CORREGIDO
         }
         
         ia_conocimiento.update_one(
