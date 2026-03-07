@@ -2172,6 +2172,7 @@ def detalle_platillo_cliente(restaurante_id, platillo_index):
 # =========================
 # COMENTARIOS-CLIENTES CON CALIFICACIÓN
 # =========================
+
 @app.route("/restaurante/<id>/comentario", methods=["POST"])
 def agregar_comentario_con_calificacion(id):
     if session.get("user_id") is None or session.get("tipo") != "cliente":
@@ -2193,7 +2194,7 @@ def agregar_comentario_con_calificacion(id):
         "cliente_id": ObjectId(session["user_id"]),
         "cliente_nombre": session.get("nombre"),
         "comentario": mensaje,
-        "fecha": datetime.datetime.utcnow()
+        "fecha": datetime.now(timezone.utc)  # ← CORREGIDO
     }
     db.comentarios.insert_one(comentario)
 
@@ -2204,7 +2205,7 @@ def agregar_comentario_con_calificacion(id):
         "cliente_nombre": session.get("nombre"),
         "comida": int(calificacion_comida),
         "servicio": int(calificacion_servicio),
-        "fecha": datetime.datetime.utcnow()
+        "fecha": datetime.now(timezone.utc)  # ← CORREGIDO
     }
     db.calificaciones.insert_one(calificacion)
 
