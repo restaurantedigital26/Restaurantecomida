@@ -7,6 +7,7 @@ from flask import session, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import uuid
+import datetime
 from datetime import datetime, timezone
 import sys
 import mimetypes
@@ -80,9 +81,9 @@ print("="*60)
 # =========================
 # CLOUDINARY CONFIGURATION
 # =========================
-import cloudinary
-import cloudinary.uploader
-import cloudinary.api
+import cloudinary # type: ignore
+import cloudinary.uploader # type: ignore
+import cloudinary.api # type: ignore
 
 CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME")
 CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY")
@@ -206,7 +207,7 @@ except Exception as e:
 # =========================
 # FLASK-MAIL CONFIGURATION
 # =========================
-from flask_mail import Mail, Message
+from flask_mail import Mail, Message # type: ignore
 
 # --- DIAGNÓSTICO ---
 print("="*50)
