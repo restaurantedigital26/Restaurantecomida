@@ -197,52 +197,53 @@
 
         <h2><i class="fas fa-history"></i> Mis Publicaciones</h2>
         <div class="grid-publicaciones">
-            {% for pub in publicaciones %}
-            <div class="publicacion-card {% if pub.activa %}activa{% else %}inactiva{% endif %}">
-                {% if pub.imagen_url %}
-                    <img src="{{ pub.imagen_url }}" alt="{{ pub.titulo }}" class="publicacion-img">
-                {% elif pub.imagen %}
-                    <img src="{{ get_image_url(pub.imagen, 'publicidad') }}" alt="{{ pub.titulo }}" class="publicacion-img">
-                {% endif %}
-                <div class="publicacion-tipo tipo-{{ pub.tipo }}">
-                    {{ pub.tipo|upper }}
-                </div>
-                <div class="publicacion-info">
-                    <h3>{{ pub.titulo }}</h3>
-                    <p>{{ pub.descripcion }}</p>
-                    
-                    {% if pub.descuento %}
-                    <div class="descuento">
-                        <i class="fas fa-tag"></i> {{ pub.descuento }}
-                    </div>
-                    {% endif %}
-                    
-                    <div class="fechas">
-                        {% if pub.fecha_inicio %}
-                        <div><i class="far fa-calendar-alt"></i> Inicio: {{ pub.fecha_inicio.strftime("%d/%m/%Y") }}</div>
-                        {% endif %}
-                        {% if pub.fecha_fin %}
-                        <div><i class="far fa-calendar-alt"></i> Fin: {{ pub.fecha_fin.strftime("%d/%m/%Y") }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <div style="margin-top: 10px; color: #666;">
-                        <i class="fas fa-eye"></i> {{ pub.vistas or 0 }} vistas
-                    </div>
-                    
-                    {% if pub.activa %}
-                    <a href="{{ url_for('desactivar_publicidad', publicidad_id=pub._id) }}" class="btn-desactivar" onclick="return confirm('¿Estás seguro de desactivar esta publicación?')">
-                        <i class="fas fa-stop"></i> Desactivar
-                    </a>
-                    {% else %}
-                    <span style="color: #999; display: block; margin-top: 10px;">
-                        <i class="fas fa-pause-circle"></i> Inactiva
-                    </span>
-                    {% endif %}
-                </div>
-            </div>
-            {% endfor %}
+    {% for pub in publicaciones %}
+    <div class="publicacion-card {% if pub.activa %}activa{% else %}inactiva{% endif %}">
+        <!-- IMAGEN CORREGIDA: usar imagen_url de la publicación -->
+        {% if pub.imagen_url %}
+        <img src="{{ pub.imagen_url }}" alt="{{ pub.titulo }}" class="publicacion-img">
+        {% endif %}
+        
+        <div class="publicacion-tipo tipo-{{ pub.tipo }}">
+            {{ pub.tipo|upper }}
         </div>
+        
+        <div class="publicacion-info">
+            <h3>{{ pub.titulo }}</h3>
+            <p>{{ pub.descripcion }}</p>
+            
+            {% if pub.descuento %}
+            <div class="descuento">
+                <i class="fas fa-tag"></i> {{ pub.descuento }}
+            </div>
+            {% endif %}
+            
+            <div class="fechas">
+                {% if pub.fecha_inicio %}
+                <div><i class="far fa-calendar-alt"></i> Inicio: {{ pub.fecha_inicio.strftime("%d/%m/%Y") }}</div>
+                {% endif %}
+                {% if pub.fecha_fin %}
+                <div><i class="far fa-calendar-alt"></i> Fin: {{ pub.fecha_fin.strftime("%d/%m/%Y") }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-top: 10px; color: #666;">
+                <i class="fas fa-eye"></i> {{ pub.vistas or 0 }} vistas
+            </div>
+            
+            {% if pub.activa %}
+            <a href="{{ url_for('desactivar_publicidad', publicidad_id=pub._id) }}" class="btn-desactivar" onclick="return confirm('¿Desactivar esta publicación?')">
+                <i class="fas fa-stop"></i> Desactivar
+            </a>
+            {% else %}
+            <span style="color: #999; display: block; margin-top: 10px;">
+                <i class="fas fa-pause-circle"></i> Inactiva
+            </span>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
     </div>
 
     <script>

@@ -2259,30 +2259,35 @@ def gestionar_publicidad():
         imagen = request.files.get("imagen")
         imagen_url = None
         imagen_public_id = None
-        
+
         if imagen and imagen.filename != "":
             print(f"📸 Subiendo imagen de publicidad a Cloudinary")
-            
             resultado = subir_a_cloudinary(imagen, "publicidad")
             
             if resultado:
                 imagen_url = resultado['url']
                 imagen_public_id = resultado['public_id']
+                print(f"✅ Imagen de publicidad subida correctamente")
+                print(f"📌 URL: {imagen_url}")
+            else:
+                print(f"⚠️ Falló la subida a Cloudinary")
+        else:
+            print("📸 No se recibió imagen para la publicidad")
 
+        # Crear la publicación - CON FECHAS CORREGIDAS
         publicacion = {
             "restaurante_id": restaurante["_id"],
             "restaurante_nombre": restaurante["nombre"],
             "titulo": titulo,
             "descripcion": descripcion,
             "tipo": tipo,
-            "fecha_inicio": datetime.datetime.strptime(fecha_inicio, "%Y-%m-%d") if fecha_inicio else None,
-            "fecha_fin": datetime.datetime.strptime(fecha_fin, "%Y-%m-%d") if fecha_fin else None,
+            "fecha_inicio": datetime.strptime(fecha_inicio, "%Y-%m-%d") if fecha_inicio else None,  # ← CORREGIDO
+            "fecha_fin": datetime.strptime(fecha_fin, "%Y-%m-%d") if fecha_fin else None,  # ← CORREGIDO
             "descuento": descuento,
-            "imagen": None,  # Ya no usamos nombre local
             "imagen_url": imagen_url,
             "imagen_public_id": imagen_public_id,
             "activa": True,
-            "fecha_creacion": datetime.datetime.now(datetime.UTC),
+            "fecha_creacion": datetime.now(timezone.utc),  # ← CORREGIDO
             "vistas": 0
         }
         
@@ -2312,20 +2317,33 @@ def desactivar_publicidad(publicidad_id):
         return redirect(url_for("login"))
     
     try:
+        # Buscar la publicación
         publicacion = publicidad.find_one({"_id": ObjectId(publicidad_id)})
-        if publicacion and publicacion.get("imagen_public_id"):
-            # Eliminar de Cloudinary
-            cloudinary.uploader.destroy(publicacion["imagen_public_id"])
-            print(f"🗑️ Imagen eliminada de Cloudinary")
+        if not publicacion:
+            print(f"❌ Publicación no encontrada: {publicidad_id}")
+            return redirect(url_for("gestionar_publicidad"))
         
-        # Desactivar en BD
-        publicidad.update_one(
+        # Verificar que la publicación pertenece al restaurante del usuario actual
+        usuario = usuarios.find_one({"_id": ObjectId(session["user_id"])})
+        restaurante = restaurantes.find_one({"email": usuario["email"]})
+        
+        if str(publicacion["restaurante_id"]) != str(restaurante["_id"]):
+            print(f"❌ No autorizado")
+            return redirect(url_for("gestionar_publicidad"))
+        
+        # Desactivar la publicación
+        resultado = publicidad.update_one(
             {"_id": ObjectId(publicidad_id)},
             {"$set": {"activa": False}}
         )
         
+        if resultado.modified_count > 0:
+            print(f"✅ Publicación {publicidad_id} desactivada")
+        else:
+            print(f"⚠️ No se modificó (quizás ya estaba inactiva)")
+        
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"❌ Error al desactivar publicidad: {e}")
     
     return redirect(url_for("gestionar_publicidad"))
 
