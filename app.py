@@ -2349,7 +2349,7 @@ def desactivar_publicidad(publicidad_id):
     return redirect(url_for("gestionar_publicidad"))
 
 # =========================
-# CHATS-CLIENTE-REST
+# CHATS-CLIENTE-REST (CORREGIDO)
 # =========================
 @app.route("/restaurante/<id>/chats", methods=["POST"])
 def enviar_chat(id):
@@ -2371,7 +2371,7 @@ def enviar_chat(id):
         nuevo_mensaje = {
             "tipo": "Cliente",
             "texto": mensaje,
-            "fecha": datetime.datetime.utcnow()
+            "fecha": datetime.now(timezone.utc)  # ← CORREGIDO
         }
 
         if chat:
@@ -2390,7 +2390,7 @@ def enviar_chat(id):
         print(f"Error al enviar mensaje: {e}")
         return "⚠️ Error al enviar el mensaje"
 
-    # Redirigir a la página anterior (detalle del platillo o restaurante)
+    # Redirigir a la página anterior
     referer = request.referrer
     if referer:
         return redirect(referer)
