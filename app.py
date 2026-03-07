@@ -2603,7 +2603,18 @@ def sitemap():
     
     return render_template('sitemap.xml', 
                           restaurantes=restaurantes_lista,
-                          now=now)        
+                          now=now)  
+# =========================
+# GOOGLE SEARCH CONSOLE VERIFICATION
+# =========================
+import os
+from flask import send_from_directory
+
+@app.route('/googlebdabeb796791b3e3.html')
+def google_verification():
+    """Sirve el archivo de verificación de Google desde la raíz"""
+    return send_from_directory(os.path.dirname(os.path.abspath(__file__)), 
+                              'googlebdabeb796791b3e3.html')      
 
 # =========================
 # EJECUCIÓN
