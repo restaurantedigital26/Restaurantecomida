@@ -301,7 +301,7 @@ def enviar_correo_bienvenida(email, nombre):
                             <li>🎁 Descubrir promociones exclusivas</li>
                         </ul>
                         <p>¿Listo para comenzar tu aventura culinaria?</p>
-                        <a href="http://127.0.0.1:5000/dashboard-cliente" class="button">Explorar Restaurantes</a>
+                        <a href="https://comidaiguala.onrender.com/dashboard-cliente" class="button">Explorar Restaurantes</a>
                     </div>
                     <div class="footer">
                         <p>© 2024 Sabores de Iguala - Todos los derechos reservados</p>
